@@ -1,0 +1,3 @@
+[submodule "openapi"]
+	path = openapi
+	url = https://Petrovich1488@bitbucket.org/firexproxy/x.meter.api.git

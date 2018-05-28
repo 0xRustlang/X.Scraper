@@ -1,0 +1,21 @@
+{
+  "name": "proxyscrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "postinstall": "bash ./swagger.sh"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "artoo-js": "^0.4.0",
+    "cheerio": "^1.0.0-rc.2",
+    "express": "^4.16.3",
+    "lodash": "^4.17.10",
+    "request": "^2.87.0",
+    "superagent": "^3.8.3"
+  }
+}
