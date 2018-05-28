@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const utils = require('./utils');
 const EventEmitter = require('events');
 
 const mapper = (scrappers) => _.map(scrappers, (scrapper) => {
@@ -6,19 +7,13 @@ const mapper = (scrappers) => _.map(scrappers, (scrapper) => {
 });
 
 
-class ProxyGrabber {
+class UncheckedProxyGrabber {
     constructor(opts) {
-        opts = _.defaults(opts, {timeout: 10 * 60 * 1000, scrappers: {}});
-        this.timeout = opts.timeout;
+        opts = _.defaults(opts, {scrappers: {}});
         this.scrappers = opts.scrappers;
 
         this.uncheckeds = [];
         this.emitter = new EventEmitter();
-    }
-
-    startGrabbing() {
-        this.grab();
-        setTimeout(this.grab, this.timeout);
     }
 
     grab() {
@@ -27,6 +22,7 @@ class ProxyGrabber {
         promises.then((data) => {
             let newProxy = _(data)
                 .flatten()
+                .proxiesToSwagger()
                 .merge(this.uncheckeds)
                 .uniqWith(_.isEqual)
                 .value();
@@ -42,6 +38,14 @@ class ProxyGrabber {
             console.log(`Scrappers failed. Reason: ${reason}`);
         });
     }
+
+    clearChecked(checked) {
+        this.uncheckeds = _.differenceWith(this.uncheckeds, checked, _.isEqual);
+    }
+
+    getUnchecked() {
+        return this.uncheckeds;
+    }
 }
 
-module.exports = ProxyGrabber;
+module.exports = UncheckedProxyGrabber;

@@ -23,7 +23,7 @@ class GatherProxySocksScrapper extends BaseScrapper {
                     let $ = cheerio.load(body);
                     let proxyList = $('#tblproxy tr')
                                     .scrape({
-                                        ip: {
+                                        server: {
                                             sel: 'td:nth-child(2)',
                                             method: function ($) {
                                                 return antiScrapperFix($(this).text());
