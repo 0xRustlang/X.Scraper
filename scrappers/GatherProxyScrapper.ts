@@ -1,5 +1,4 @@
-const _ = require('lodash');
-const BaseScrapper = require('./BaseScrapper');
+import BaseScrapper from './BaseScrapper';
 const artoo = require('artoo-js');
 const request = require('request');
 const cheerio = require('cheerio');

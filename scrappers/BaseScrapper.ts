@@ -4,4 +4,4 @@ class BaseScrapper {
     }
 }
 
-module.exports = BaseScrapper;
+export default BaseScrapper;
