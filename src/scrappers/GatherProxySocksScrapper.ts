@@ -1,4 +1,4 @@
-import BaseScrapper from './BaseScrapper';
+import {BaseScrapper} from './BaseScrapper';
 import {IProxy} from "../interfaces/IProxy";
 
 const _ = require('lodash');
@@ -52,4 +52,4 @@ class GatherProxySocksScrapper extends BaseScrapper {
 }
 
 
-module.exports = GatherProxySocksScrapper;
+export {GatherProxySocksScrapper};

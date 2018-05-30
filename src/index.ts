@@ -1,9 +1,9 @@
 require('dotenv').config();
 import scheduler = require('node-schedule');
 import Swagger = require('./generated/api');
-import UncheckedProxyGrabber from './UncheckedProxyGrabber';
 import Redis = require('redis');
 import {App} from './App';
+import {UncheckedProxyGrabber} from './UncheckedProxyGrabber';
 import {RedisProxyManager} from './RedisProxyManager';
 import {ProxyChecker} from "./ProxyChecker";
 
@@ -15,8 +15,8 @@ const redisProxyManager = new RedisProxyManager(redisClient);
 const app = new App(redisProxyManager);
 const meterApi = new Swagger.MeterApi();
 const scrappers = [
-    require('./scrappers/GatherProxyScrapper'),
-    require('./scrappers/GatherProxySocksScrapper')
+    require('./scrappers/GatherProxyScrapper').GatherProxyScrapper,
+    require('./scrappers/GatherProxySocksScrapper').GatherProxySocksScrapper
 ];
 
 let uncheckedProxyGrabber = new UncheckedProxyGrabber({scrappers: scrappers});

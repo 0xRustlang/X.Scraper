@@ -8,4 +8,4 @@ class BaseScrapper {
     }
 }
 
-export default BaseScrapper;
+export {BaseScrapper};

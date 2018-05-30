@@ -1,5 +1,5 @@
 import _ = require('lodash');
-import BaseScrapper from "./scrappers/BaseScrapper";
+import {BaseScrapper} from "./scrappers/BaseScrapper";
 import {IProxy} from "./interfaces/IProxy";
 
 const mapper = (scrappers) => _.map(scrappers, (scrapper) => {
@@ -28,4 +28,4 @@ class UncheckedProxyGrabber {
     }
 }
 
-export default UncheckedProxyGrabber;
+export {UncheckedProxyGrabber};

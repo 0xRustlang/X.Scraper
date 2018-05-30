@@ -1,4 +1,4 @@
-import BaseScrapper from './BaseScrapper';
+import {BaseScrapper} from './BaseScrapper';
 import {IProxy} from "../interfaces/IProxy";
 
 const artoo = require('artoo-js');
@@ -50,4 +50,4 @@ class GatherProxyScrapper extends BaseScrapper {
 }
 
 
-module.exports = GatherProxyScrapper;
+export {GatherProxyScrapper};

@@ -4,7 +4,7 @@ import * as moment from "moment";
 import {IProxyRatio} from "./interfaces/IProxyRatio";
 const _ = require('lodash');
 
-function proxiesToSwagger(proxies: Array<IProxy>): Array<Proxies> {
+function proxiesToXMeter(proxies: Array<IProxy>): Array<Proxies> {
     return _.map(proxies, (proxy) => {
         let swagProxy = new Proxies();
         swagProxy.server = proxy.server;
@@ -42,7 +42,7 @@ function proxyNodeRatiosToProxyRatios(proxyRatios: Array<ProxyNodeRatios>): Arra
     });
 }
 
-_.mixin({'proxiesToSwagger': proxiesToSwagger});
+_.mixin({'proxiesToSwagger': proxiesToXMeter});
 _.mixin({'swaggerProxyNodeToProxy': proxyNodesToProxies});
 
-export {proxiesToSwagger, normalizeProxy, proxyNodesToProxies, proxyNodeRatiosToProxyRatios};
+export {proxiesToXMeter, normalizeProxy, proxyNodesToProxies, proxyNodeRatiosToProxyRatios};

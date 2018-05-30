@@ -1,7 +1,7 @@
 import {RedisProxyManager} from "./RedisProxyManager";
 import {MeterApi} from "./generated/api";
 import {_} from 'lodash';
-import {proxiesToSwagger, proxyNodesToProxies} from './utils';
+import {proxiesToXMeter, proxyNodesToProxies} from './utils';
 import moment = require("moment");
 import {IProxy} from "./interfaces/IProxy";
 
@@ -18,15 +18,15 @@ class ProxyChecker {
         let allProxies = await this.redisProxyManager.getProxies();
         let proxiesToCheck = _.filter(allProxies, ProxyChecker.isProxyWorthChecking);
 
-        let swagProxies = proxiesToSwagger(proxiesToCheck);
-        let swagData = null;
+        let xmeterRequest = proxiesToXMeter(proxiesToCheck);
+        let xmeterResult = null;
         try {
-            swagData = await this.meterApi.checkReliability(swagProxies);
+            xmeterResult = await this.meterApi.checkReliability(xmeterRequest);
         } catch (e) {
             console.error(`XMeter api responsed with error: ${e}`);
-            swagData = {body: []};
+            xmeterResult = {body: []};
         }
-        let checkedProxies = proxyNodesToProxies(swagData.body);
+        let checkedProxies = proxyNodesToProxies(xmeterResult.body);
 
         let deadProxies = _.filter(checkedProxies, ProxyChecker.isProxyDead);
         this.redisProxyManager.deleteProxies(deadProxies);
