@@ -1,5 +1,6 @@
 import _ = require('lodash');
 import BaseScrapper from "./scrappers/BaseScrapper";
+import {IProxy} from "./interfaces/IProxy";
 
 const mapper = (scrappers) => _.map(scrappers, (scrapper) => {
     return scrapper.scrape();
@@ -7,14 +8,14 @@ const mapper = (scrappers) => _.map(scrappers, (scrapper) => {
 
 
 class UncheckedProxyGrabber {
-    scrappers: Array<BaseScrapper>;
+    private scrappers: Array<BaseScrapper>;
 
-    constructor(opts) {
+    public constructor(opts) {
         opts = _.defaults(opts, {scrappers: {}});
         this.scrappers = opts.scrappers;
     }
 
-    grab() {
+    public grab() : Promise<Array<IProxy>> {
         let promises = Promise.all(mapper(this.scrappers));
 
         return promises.then((data) => {
@@ -27,4 +28,4 @@ class UncheckedProxyGrabber {
     }
 }
 
-module.exports = UncheckedProxyGrabber;
+export default UncheckedProxyGrabber;

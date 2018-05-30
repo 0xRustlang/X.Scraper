@@ -2,13 +2,16 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "outDir": "dist"
+    "outDir": "dist",
+    "sourceMap": true
   },
   "files": [
+    "./node_modules/@types/redis/index.d.ts",
+    "./node_modules/@types/express/index.d.ts",
     "./node_modules/@types/node/index.d.ts"
   ],
   "include": [
-    "./**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"
