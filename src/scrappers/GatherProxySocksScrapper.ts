@@ -1,5 +1,5 @@
-import {BaseScrapper} from './BaseScrapper';
 import {IProxy} from "../interfaces/IProxy";
+import {IScrapper} from "../interfaces/IScrapper";
 
 const _ = require('lodash');
 const artoo = require('artoo-js');
@@ -8,11 +8,11 @@ const cheerio = require('cheerio');
 
 artoo.bootstrap(cheerio);
 
-class GatherProxySocksScrapper extends BaseScrapper {
-    public static scrape(): Promise<Array<IProxy>> {
+class GatherProxySocksScrapper implements IScrapper {
+    public scrape(): Promise<Array<IProxy>> {
         return new Promise(
             (resolve, reject) => {
-                request(this.providerUrl, (err, response, body) => {
+                request(this.getProviderUrl(), (err, response, body) => {
                     if (err) return reject(err);
 
                     let $ = cheerio.load(body);
@@ -39,14 +39,14 @@ class GatherProxySocksScrapper extends BaseScrapper {
             });
     }
 
-    private static antiScrapperFix(string: string) : string {
+    private antiScrapperFix(string: string) : string {
         string = string.trim();
         if (string.startsWith('document'))
             string = string.replace(/document.write\('(.*?)'\)/, '$1');
         return string;
     }
 
-    private static get providerUrl() : string {
+    public getProviderUrl() : string {
         return 'http://www.gatherproxy.com/ru/sockslist';
     }
 }

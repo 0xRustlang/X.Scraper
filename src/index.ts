@@ -14,10 +14,11 @@ let appPort = parseInt(process.env.port || '8080');
 const redisProxyManager = new RedisProxyManager(redisClient);
 const app = new App(redisProxyManager);
 const meterApi = new Swagger.MeterApi();
+
 const scrappers = [
     require('./scrappers/GatherProxyScrapper').GatherProxyScrapper,
     require('./scrappers/GatherProxySocksScrapper').GatherProxySocksScrapper
-];
+].map((scrapper) => {return new scrapper()});
 
 let uncheckedProxyGrabber = new UncheckedProxyGrabber({scrappers: scrappers});
 let proxyChecker = new ProxyChecker(redisProxyManager, meterApi);
