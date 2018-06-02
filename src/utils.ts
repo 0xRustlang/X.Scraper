@@ -55,11 +55,11 @@ function numberToIp(number: number): string {
 }
 
 function momentToSQL(instance: Moment) {
-    return instance.format('YYYY-MM-DD HH:mm:ss');
+    return instance.format('YYYY-MM-DD HH:mm:ssZZ');
 }
 
 function sqlToMoment(timestamp: string) {
-    return moment.utc(timestamp, 'YYYY-MM-DD HH:mm:ss');
+    return moment.utc(timestamp, 'YYYY-MM-DD HH:mm:ssZZ');
 }
 
 _.mixin({'proxiesToSwagger': proxiesToXMeter});

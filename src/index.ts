@@ -48,7 +48,7 @@ app.listen(appPort).then(async () => {
 }, () => {
     process.exit();
 });
-
+proxyChecker.checkProxies();
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });

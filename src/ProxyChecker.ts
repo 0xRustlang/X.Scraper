@@ -14,8 +14,7 @@ class ProxyChecker {
     }
 
     public async checkProxies(): Promise<void> {
-        let allProxies = await Proxy.findAll();
-        let proxiesToCheck = _.filter(allProxies, ProxyChecker.isProxyWorthChecking);
+        let proxiesToCheck = await Proxy.scope('check').findAll();
         if (!_.size(proxiesToCheck)) {
             return;
         }
@@ -44,12 +43,6 @@ class ProxyChecker {
         } catch (e) {
             console.log(`Failed to update alive proxies. Reason ${e}`);
         }
-    }
-
-    private static isProxyWorthChecking(proxy: IProxy): boolean {
-        let ageMs = moment().utc().diff(proxy.lastChecked);
-        let age = moment.duration(ageMs).asMinutes();
-        return age > parseInt(process.env.CHECK_TIMEOUT) || !proxy.checked;
     }
 
     private static isProxyAlive(proxy: IProxy): boolean {
