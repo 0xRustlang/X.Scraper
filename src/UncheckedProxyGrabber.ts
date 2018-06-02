@@ -21,6 +21,7 @@ class UncheckedProxyGrabber {
         return promises.then((data) => {
             return _(data)
                 .flatten()
+                .uniqBy('server')
                 .value();
         }, (reason) => {
             console.log(`Scrappers failed. Reason: ${reason}`);

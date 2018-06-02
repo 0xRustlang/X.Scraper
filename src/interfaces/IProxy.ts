@@ -1,4 +1,4 @@
-import {IProxyRatio} from "./IProxyRatio";
+import {IProxyTransport} from "./IProxyTransport";
 import {Moment} from "moment";
 
 interface IProxy {
@@ -7,7 +7,7 @@ interface IProxy {
     isoCode?: string;
     checked: boolean;
     lastChecked: Moment | Date;
-    ratios?: Array<IProxyRatio>;
+    proxyTransports?: Array<IProxyTransport>;
 }
 
 export {IProxy};

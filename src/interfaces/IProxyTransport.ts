@@ -1,6 +1,6 @@
-interface IProxyRatio {
+interface IProxyTransport {
     pingTimeMs: number;
     lossRatio: number;
     protocol: string;
 }
-export {IProxyRatio}
+export {IProxyTransport}

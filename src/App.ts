@@ -1,15 +1,15 @@
 import * as express from 'express'
-import {RedisProxyManager} from "./RedisProxyManager";
-import {Express} from "express";
-import {_} from 'lodash';
+import {Express} from 'express'
+import * as _ from 'lodash';
+import {Proxy} from "./models/Proxy";
+import {IProxy} from "./interfaces/IProxy";
+import {IProxyTransport} from "./interfaces/IProxyTransport";
 
 class App {
     private express: Express;
-    private redisProxyManager: RedisProxyManager;
 
-    constructor(redisProxyManager: RedisProxyManager) {
+    constructor() {
         this.express = express();
-        this.redisProxyManager = redisProxyManager;
         this.mountRoutes()
     }
 
@@ -17,9 +17,14 @@ class App {
         const router = express.Router();
         router.get('/', async (req, res) => {
             try {
-                let proxies = await this.redisProxyManager.getProxies();
-                proxies = _.filter(proxies, proxy => proxy.checked);
-                return res.json(proxies);
+                let proxies = await Proxy.scope('full').findAll();
+
+                let response = _.reduce(proxies, (acc, proxy) => {
+                    acc.push(this.mapProxy(proxy, this.getProxyTransport(proxy)));
+                    return acc;
+                }, []);
+
+                return res.json(response);
             } catch (e) {
                 console.log(`Failed to get proxies. Reason: ${e}`);
                 return res.json([]);
@@ -28,16 +33,40 @@ class App {
         this.express.use('/proxy', router)
     }
 
-    public async listen(port: number): Promise<any> {
-        this.express.listen(port, (err) => {
-            if (err) {
-                console.error(`Couldn't bind to port: ${port}. Reason: ${err}`);
-                throw new Error(`Couldn't bind to port: ${port}. Reason: ${err}`);
-            }
+    public listen(port: number): Promise<any> {
+        return new Promise((resolve, reject) =>
+            this.express.listen(port, (err) => {
+                if (err) {
+                    console.error(`Couldn't bind to port: ${port}. Reason: ${err}`);
+                    reject(new Error(`Couldn't bind to port: ${port}. Reason: ${err}`));
+                    return;
+                }
 
-            return console.log(`Started listening on port ${port}`);
-        });
+                console.log(`Started listening on port ${port}`);
+                resolve();
+            }));
     }
+
+    private mapProxy(proxy: IProxy, transport: IProxyTransport): object {
+        return {
+            ip: proxy.server,
+            port: parseInt(proxy.port),
+            loss_ratio: transport.lossRatio,
+            ping_time_ms: transport.pingTimeMs,
+            protocol: transport.protocol
+        }
+    }
+
+    private getProxyTransport(proxy: IProxy): IProxyTransport {
+        let priority = ['SOCKS5', 'HTTPS', 'HTTP'];
+
+        return _(proxy.proxyTransports)
+            .filter(protocol => protocol.lossRatio !== 1)
+            .sort(protocol => priority.indexOf(protocol.protocol))
+            .first();
+
+    }
+
 }
 
 export {App}

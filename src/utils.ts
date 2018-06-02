@@ -1,28 +1,23 @@
-import {IProxy} from "./interfaces/IProxy";
-import {Proxies, ProxyNode, ProxyNodeRatios} from './generated/api';
-import * as moment from "moment";
-import {IProxyRatio} from "./interfaces/IProxyRatio";
+import {IProxy} from './interfaces/IProxy';
+import {Proxy, ProxyNode, ProxyNodeTransport} from './xmeterapi/api';
+import * as moment from 'moment';
+import {Moment} from 'moment';
+import {IProxyTransport} from "./interfaces/IProxyTransport";
 const _ = require('lodash');
 
-function proxiesToXMeter(proxies: Array<IProxy>): Array<Proxies> {
+function proxiesToXMeter(proxies: Array<IProxy>): Array<Proxy> {
     return _.map(proxies, (proxy) => {
-        let swagProxy = new Proxies();
+        let swagProxy = new Proxy();
         swagProxy.server = proxy.server;
         swagProxy.port = proxy.port;
         return swagProxy;
     })
 }
 
-function normalizeProxy(proxy: IProxy): IProxy {
-    proxy.checked = proxy.checked || false;
-    proxy.lastChecked = proxy.lastChecked || moment().utc().subtract(2, 'minutes');
-    return proxy;
-}
-
 function proxyNodesToProxies(proxies: Array<ProxyNode>): Array<IProxy> {
     return _.map(proxies, (proxy) => {
         return {
-            ratios: proxyNodeRatiosToProxyRatios(proxy.ratios),
+            proxyTransports: proxyNodeRatiosToProxyRatios(proxy.transport),
             isoCode: proxy.isoCode,
             port: proxy.port,
             server: proxy.server,
@@ -32,7 +27,7 @@ function proxyNodesToProxies(proxies: Array<ProxyNode>): Array<IProxy> {
     });
 }
 
-function proxyNodeRatiosToProxyRatios(proxyRatios: Array<ProxyNodeRatios>): Array<IProxyRatio> {
+function proxyNodeRatiosToProxyRatios(proxyRatios: Array<ProxyNodeTransport>): Array<IProxyTransport> {
     return _.map(proxyRatios, (proxyRatio) => {
         return {
             lossRatio: proxyRatio.lossRatio,
@@ -42,7 +37,32 @@ function proxyNodeRatiosToProxyRatios(proxyRatios: Array<ProxyNodeRatios>): Arra
     });
 }
 
+function ipToNumber(ip: string): number {
+    return _(ip)
+        .split('.')
+        .map((val, index, array) => parseInt(val) * Math.pow(256, array.length - index - 1))
+        .reduce((acc, val) => acc + val, 0)
+        .value();
+}
+
+function numberToIp(number: number): string {
+    return [
+        (number>>24)&0xff,
+        (number>>16)&0xff,
+        (number>>8)&0xff,
+        number&0xff
+    ].join('.');
+}
+
+function momentToSQL(instance: Moment) {
+    return instance.format('YYYY-MM-DD HH:mm:ss');
+}
+
+function sqlToMoment(timestamp: string) {
+    return moment.utc(timestamp, 'YYYY-MM-DD HH:mm:ss');
+}
+
 _.mixin({'proxiesToSwagger': proxiesToXMeter});
 _.mixin({'swaggerProxyNodeToProxy': proxyNodesToProxies});
 
-export {proxiesToXMeter, normalizeProxy, proxyNodesToProxies, proxyNodeRatiosToProxyRatios};
+export {proxiesToXMeter, proxyNodesToProxies, proxyNodeRatiosToProxyRatios, numberToIp, ipToNumber, momentToSQL, sqlToMoment};

@@ -1,32 +1,45 @@
-require('dotenv').config();
+require('dotenv').config({path: '../.env'});
+import xMeter = require('./xmeterapi/api');
 import scheduler = require('node-schedule');
-import Swagger = require('./generated/api');
-import Redis = require('redis');
 import {App} from './App';
 import {UncheckedProxyGrabber} from './UncheckedProxyGrabber';
-import {RedisProxyManager} from './RedisProxyManager';
 import {ProxyChecker} from "./ProxyChecker";
+import {sequelize} from "./Sequelize";
+import {Proxy} from "./models/Proxy"
+import * as _ from 'lodash';
 
-let redisURL = process.env.REDIS_URL || '//127.0.0.1:6379';
-let redisClient = Redis.createClient(redisURL);
-let appPort = parseInt(process.env.port || '8080');
 
-const redisProxyManager = new RedisProxyManager(redisClient);
-const app = new App(redisProxyManager);
-const meterApi = new Swagger.MeterApi();
+let appPort = parseInt(process.env.PORT || '8080');
+const app = new App();
+const meterApi = new xMeter.MeterApi(process.env.XMETER_USERNAME, process.env.XMETER_PASSWORD);
 
 const scrappers = [
     require('./scrappers/GatherProxyScrapper').GatherProxyScrapper,
     require('./scrappers/GatherProxySocksScrapper').GatherProxySocksScrapper
-].map((scrapper) => {return new scrapper()});
+].map(scrapper => new scrapper());
 
 let uncheckedProxyGrabber = new UncheckedProxyGrabber({scrappers: scrappers});
-let proxyChecker = new ProxyChecker(redisProxyManager, meterApi);
+let proxyChecker = new ProxyChecker(meterApi);
 
-app.listen(appPort).then(() => {
+app.listen(appPort).then(async () => {
+    try {
+        await sequelize.sync();
+        console.log(`DB connected`);
+    } catch (e) {
+        console.log(`DB failed to connect. Reason: ${e}`);
+        process.exit();
+    }
+
     scheduler.scheduleJob(`*/${process.env.GRAB_TIMEOUT} * * * *`, async () => {
-        let newProxies = await uncheckedProxyGrabber.grab();
-        redisProxyManager.addProxies(newProxies);
+        let grabbedProxies = await uncheckedProxyGrabber.grab();
+        try {
+            let existing = await Proxy.findAll();
+            let newProxies = _.differenceBy(grabbedProxies, existing, 'server');
+            if (_.size(newProxies))
+                Proxy.bulkCreate(newProxies, {validate: true});
+        } catch (e) {
+            console.log(e);
+        }
     });
 
     scheduler.scheduleJob(`*/${process.env.CHECK_TIMEOUT} * * * *`, () => {
