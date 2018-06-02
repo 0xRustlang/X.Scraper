@@ -33,6 +33,7 @@ class ProxyChecker {
             await Proxy.destroy({where: {server: _.map(checkedProxies, 'server')}});
         } catch (e) {
             console.log(`Failed to delete proxies. Reason: ${e}`);
+            return;
         }
 
         let aliveProxies = _.filter(checkedProxies, ProxyChecker.isProxyAlive);
