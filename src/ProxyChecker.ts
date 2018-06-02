@@ -26,6 +26,7 @@ class ProxyChecker {
         } catch (e) {
             console.error(`XMeter api responsed with error: ${e.response.body}`);
             xmeterResult = {body: []};
+            return;
         }
         //TODO: придумать что-нибудь получшееее
         let checkedProxies = proxyNodesToProxies(xmeterResult.body);
