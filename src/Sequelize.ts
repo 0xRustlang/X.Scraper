@@ -1,4 +1,5 @@
 import {Sequelize} from 'sequelize-typescript';
+import {logger} from "./logger";
 
 export const sequelize = new Sequelize({
     dialect: 'postgres',
@@ -6,5 +7,6 @@ export const sequelize = new Sequelize({
     database: process.env.DB_NAME,
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
-    modelPaths: [__dirname + '/models']
+    modelPaths: [__dirname + '/models'],
+    logging: (msg) => logger.info(msg)
 });

@@ -1,12 +1,12 @@
 require('dotenv').config({path: '../.env'});
-import xMeter = require('./xmeterapi/api');
-import scheduler = require('node-schedule');
+
+import {logger} from "./logger";
 import {App} from './App';
 import {UncheckedProxyGrabber} from './UncheckedProxyGrabber';
 import {ProxyChecker} from "./ProxyChecker";
 import {sequelize} from "./Sequelize";
-import {Proxy} from "./models/Proxy"
-import * as _ from 'lodash';
+import xMeter = require('./xmeterapi/api');
+import scheduler = require('node-schedule');
 
 
 let appPort = parseInt(process.env.PORT || '8080');
@@ -24,31 +24,27 @@ let proxyChecker = new ProxyChecker(meterApi);
 app.listen(appPort).then(async () => {
     try {
         await sequelize.sync();
-        console.log(`DB connected`);
+        logger.info(`DB connected`);
     } catch (e) {
-        console.log(`DB failed to connect. Reason: ${e}`);
+        logger.error(`DB failed to connect. Reason: ${e}`);
         process.exit();
     }
 
     scheduler.scheduleJob(`*/${process.env.GRAB_TIMEOUT} * * * *`, async () => {
-        let grabbedProxies = await uncheckedProxyGrabber.grab();
         try {
-            let existing = await Proxy.findAll();
-            let newProxies = _.differenceBy(grabbedProxies, existing, 'server');
-            if (_.size(newProxies))
-                Proxy.bulkCreate(newProxies, {validate: true});
+            await uncheckedProxyGrabber.populate();
         } catch (e) {
-            console.log(e);
+            logger.error(e);
         }
     });
 
-    scheduler.scheduleJob(`*/${process.env.CHECK_TIMEOUT} * * * *`, () => {
-        proxyChecker.checkProxies();
+    scheduler.scheduleJob(`*/${process.env.CHECK_TIMEOUT} * * * *`, async () => {
+        try {
+            await proxyChecker.checkProxies();
+        } catch(e) {
+            logger.error(e);
+        }
     });
 }, () => {
     process.exit();
-});
-proxyChecker.checkProxies();
-process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });

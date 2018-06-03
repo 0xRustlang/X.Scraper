@@ -15,36 +15,22 @@ class ProxyChecker {
 
     public async checkProxies(): Promise<void> {
         let proxiesToCheck = await Proxy.scope('check').findAll();
+
         if (!_.size(proxiesToCheck)) {
             return;
         }
 
         let xmeterRequest = proxiesToXMeter(proxiesToCheck);
-        let xmeterResult = null;
-        try {
-            xmeterResult = await this.meterApi.checkReliability(xmeterRequest);
-        } catch (e) {
-            console.error(`XMeter api responsed with error: ${e.response.body}`);
-            xmeterResult = {body: []};
-            return;
-        }
+        let xmeterResult = await this.meterApi.checkReliability(xmeterRequest);
+
         //TODO: придумать что-нибудь получшееее
         let checkedProxies = proxyNodesToProxies(xmeterResult.body);
-        try {
-            await Proxy.destroy({where: {server: _.map(checkedProxies, 'server')}});
-        } catch (e) {
-            console.log(`Failed to delete proxies. Reason: ${e}`);
-            return;
-        }
+        await Proxy.destroy({where: {server: _.map(checkedProxies, 'server')}});
 
         let aliveProxies = _.filter(checkedProxies, ProxyChecker.isProxyAlive);
-        try {
-            _.each(aliveProxies, async (aliveProxy) => {
-                await Proxy.create(aliveProxy, {include: [ProxyTransport]});
-            });
-        } catch (e) {
-            console.log(`Failed to update alive proxies. Reason ${e}`);
-        }
+        _.each(aliveProxies, async (aliveProxy) => {
+            await Proxy.create(aliveProxy, {include: [ProxyTransport]});
+        });
     }
 
     private static isProxyAlive(proxy: IProxy): boolean {
