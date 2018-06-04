@@ -5,20 +5,31 @@ import {Proxy} from "./models/Proxy";
 import {IProxy} from "./interfaces/IProxy";
 import {IProxyTransport} from "./interfaces/IProxyTransport";
 import {logger} from "./logger";
+import * as expressWinston from 'express-winston';
 
 class App {
     private express: Express;
 
     constructor() {
         this.express = express();
-        this.mountRoutes()
+        this.setLogging();
+        this.mountRoutes();
+    }
+
+    private setLogging():void {
+        this.express.use(expressWinston.logger({
+            meta: true,
+            msg: "HTTP {{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}",
+            level: 'notice',
+            winstonInstance: logger
+        }));
     }
 
     private mountRoutes(): void {
         const router = express.Router();
         router.get('/', async (req, res) => {
             try {
-                let proxies = await Proxy.scope('full').findAll();
+                let proxies = await Proxy.scope('checked').findAll();
 
                 let response = _.reduce(proxies, (acc, proxy) => {
                     acc.push(this.mapProxy(proxy, this.getProxyTransport(proxy)));

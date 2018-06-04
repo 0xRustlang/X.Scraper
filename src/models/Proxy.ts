@@ -4,7 +4,7 @@ import {
     BeforeBulkUpdate,
     BeforeCreate,
     BeforeUpdate,
-    Column,
+    Column, CreatedAt,
     DataType,
     Default,
     DefaultScope,
@@ -16,7 +16,7 @@ import {
     Model,
     PrimaryKey,
     Scopes, Sequelize,
-    Table
+    Table, UpdatedAt
 } from "sequelize-typescript";
 import {ProxyTransport} from "./ProxyTransport";
 import {Moment} from "moment";
@@ -33,10 +33,6 @@ function defaultMomentObject(): Moment {
     attributes: ['server', 'port']
 })
 @Scopes({
-    full: {
-        attributes: ['isoCode', 'port', 'server', 'checked', 'lastChecked'],
-        include: [() => ProxyTransport]
-    },
     check: {
         attributes: ['port', 'server', 'checked', 'lastChecked'],
         where: {
@@ -46,6 +42,13 @@ function defaultMomentObject(): Moment {
                 },
                 checked: false
             }
+        }
+    },
+    checked: {
+        attributes: ['isoCode', 'port', 'server', 'checked', 'lastChecked'],
+        include: [() => ProxyTransport],
+        where: {
+            checked: true
         }
     }
 })
@@ -87,4 +90,12 @@ export class Proxy extends Model<Proxy> implements IProxy {
 
     @HasMany(() => ProxyTransport)
     proxyTransports: ProxyTransport[];
+
+    @CreatedAt
+    @Column
+    createdAt: Date;
+
+    @UpdatedAt
+    @Column
+    updatedAt: Date;
 }
