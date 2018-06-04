@@ -1,3 +1,6 @@
-[submodule "openapi"]
-	path = openapi
-	url = https://Petrovich1488@bitbucket.org/firexproxy/x.meter.api.git
+[submodule "xmeterapi"]
+	path = xmeterapi
+	url = https://github.com/FireX-Proxy/X.Meter.Api.git
+[submodule "xscraperapi"]
+	path = xscraperapi
+	url = https://github.com/FireX-Proxy/X.Scraper.Api.git
