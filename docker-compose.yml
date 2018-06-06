@@ -1,0 +1,31 @@
+version: "2"
+services:
+  node:
+    image: node:10
+    user: "node"
+    working_dir: /home/node/app
+    env_file: .env
+    volumes:
+      - ./:/home/node/app
+    restart: on-failure
+    depends_on:
+      - postgres
+    ports:
+      - "4040:4040"
+    expose:
+      - "4040"
+    command: "npm run start"
+  postgres:
+    restart: always
+    image: postgres:9.6.2-alpine
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=xscraper
+      - POSTGRES_PASSWORD=xscraper
+      - POSTGRES_DB=xscraper
+    volumes:
+      - postgresql-volume:/var/lib/postgresql/data
+volumes:
+    postgresql-volume:
+      driver: 'local'

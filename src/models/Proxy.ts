@@ -52,7 +52,9 @@ function defaultMomentObject(): Moment {
         }
     }
 })
-@Table
+@Table({
+    tableName: 'proxy'
+})
 export class Proxy extends Model<Proxy> implements IProxy {
     @IsIP
     @PrimaryKey
