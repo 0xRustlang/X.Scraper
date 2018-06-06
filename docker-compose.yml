@@ -1,0 +1,46 @@
+version: "2"
+services:
+  node:
+    image: node:10
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+    # You probably want to change this
+      - GRAYLOG_SERVER=localhost
+      - GRAYLOG_PORT=12201
+      - XMETER_HOST=http://localhost/v1
+      - XMETER_USERNAME=xmeteruser
+      - XMETER_PASSWORD=xmeterpassword
+      - PORT=4040
+    # You SHOULDNOT change this
+      - NODE_ENV=production
+      - GRAB_TIMEOUT=10
+      - CHECK_TIMEOUT=2
+      - DB_HOST=postgres
+      - DB_NAME=xscraper
+      - DB_USER=xscraper
+      - DB_PASS=xscraper
+    volumes:
+      - ./:/home/node/app
+    restart: on-failure
+    depends_on:
+      - postgres
+    ports:
+      - "4040:4040"
+    expose:
+      - "4040"
+    command: "npm run start"
+  postgres:
+    restart: always
+    image: postgres:9.6.2-alpine
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=xscraper
+      - POSTGRES_PASSWORD=xscraper
+      - POSTGRES_DB=xscraper
+    volumes:
+      - postgresql-volume:/var/lib/postgresql/data
+volumes:
+    postgresql-volume:
+      driver: 'local'

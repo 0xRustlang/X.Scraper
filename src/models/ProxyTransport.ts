@@ -2,7 +2,9 @@ import {Column, DataType, ForeignKey, Model, PrimaryKey, Table} from "sequelize-
 import {IProxyTransport} from "../interfaces/IProxyTransport";
 import {Proxy} from "./Proxy";
 
-@Table
+@Table({
+    tableName: 'proxytransport'
+})
 export class ProxyTransport extends Model<ProxyTransport> implements IProxyTransport {
     @PrimaryKey
     @Column(DataType.STRING(6))

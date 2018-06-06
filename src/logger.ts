@@ -18,7 +18,7 @@ const logger = winston.createLogger({
                 return msg.trim();
             },
             graylog: {
-                servers: [{host: 'localhost', port: 12201}, {
+                servers: [{
                     host: process.env.GRAYLOG_SERVER,
                     port: process.env.GRAYLOG_PORT
                 }],

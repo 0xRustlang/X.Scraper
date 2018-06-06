@@ -11,7 +11,7 @@ import scheduler = require('node-schedule');
 
 let appPort = parseInt(process.env.PORT || '8080');
 const app = new App();
-const meterApi = new xMeter.MeterApi(process.env.XMETER_USERNAME, process.env.XMETER_PASSWORD);
+const meterApi = new xMeter.MeterApi(process.env.XMETER_USERNAME, process.env.XMETER_PASSWORD, process.env.XMETER_HOST);
 
 const scrappers = [
     require('./scrappers/GatherProxyScrapper').GatherProxyScrapper,
@@ -27,7 +27,7 @@ app.listen(appPort).then(async () => {
         logger.info(`DB connected`);
     } catch (e) {
         logger.error(`DB failed to connect. Reason: ${e}`);
-        process.exit();
+        process.exit(1);
     }
 
     scheduler.scheduleJob(`*/${process.env.GRAB_TIMEOUT} * * * *`, async () => {
