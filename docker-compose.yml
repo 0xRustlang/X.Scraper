@@ -4,22 +4,7 @@ services:
     image: node:10
     user: "node"
     working_dir: /home/node/app
-    environment:
-    # You probably want to change this
-      - GRAYLOG_SERVER=localhost
-      - GRAYLOG_PORT=12201
-      - XMETER_HOST=http://localhost/v1
-      - XMETER_USERNAME=xmeteruser
-      - XMETER_PASSWORD=xmeterpassword
-      - PORT=4040
-    # You SHOULDNOT change this
-      - NODE_ENV=production
-      - GRAB_TIMEOUT=10
-      - CHECK_TIMEOUT=2
-      - DB_HOST=postgres
-      - DB_NAME=xscraper
-      - DB_USER=xscraper
-      - DB_PASS=xscraper
+    env_file: .env
     volumes:
       - ./:/home/node/app
     restart: on-failure

@@ -3,7 +3,7 @@ import {IProxyTransport} from "../interfaces/IProxyTransport";
 import {Proxy} from "./Proxy";
 
 @Table({
-    tableName: 'proxytransport'
+    tableName: 'proxy_transport'
 })
 export class ProxyTransport extends Model<ProxyTransport> implements IProxyTransport {
     @PrimaryKey
