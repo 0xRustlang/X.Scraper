@@ -37,23 +37,6 @@ function proxyNodeRatiosToProxyRatios(proxyRatios: Array<ProxyNodeTransport>): A
     });
 }
 
-function ipToNumber(ip: string): number {
-    return _(ip)
-        .split('.')
-        .map((val, index, array) => parseInt(val) * Math.pow(256, array.length - index - 1))
-        .reduce((acc, val) => acc + val, 0)
-        .value();
-}
-
-function numberToIp(number: number): string {
-    return [
-        (number>>24)&0xff,
-        (number>>16)&0xff,
-        (number>>8)&0xff,
-        number&0xff
-    ].join('.');
-}
-
 function momentToSQL(instance: Moment) {
     return instance.format('YYYY-MM-DD HH:mm:ssZZ');
 }
@@ -65,4 +48,4 @@ function sqlToMoment(timestamp: string) {
 _.mixin({'proxiesToSwagger': proxiesToXMeter});
 _.mixin({'swaggerProxyNodeToProxy': proxyNodesToProxies});
 
-export {proxiesToXMeter, proxyNodesToProxies, proxyNodeRatiosToProxyRatios, numberToIp, ipToNumber, momentToSQL, sqlToMoment};
+export {proxiesToXMeter, proxyNodesToProxies, proxyNodeRatiosToProxyRatios, momentToSQL, sqlToMoment};

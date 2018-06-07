@@ -14,7 +14,9 @@ class ProxyChecker {
     }
 
     public async checkProxies(): Promise<void> {
-        let proxiesToCheck = await Proxy.scope('check').findAll();
+        let proxiesToCheck = await Proxy
+            .scope('check')
+            .findAll({attributes: ['port', 'server', 'checked', 'lastChecked']});
 
         if (!_.size(proxiesToCheck)) {
             return;
