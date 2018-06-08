@@ -30,8 +30,8 @@
     "request": "^2.87.0",
     "sequelize": "^4.37.10",
     "sequelize-typescript": "^0.6.5",
+    "swaggerize-express": "^4.0.5",
     "winston": "^3.0.0-rc6",
-    "winston-elasticsearch": "^0.6.0",
     "winston-graylog2": "^1.0.0"
   }
 }

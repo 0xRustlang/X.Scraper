@@ -1,7 +1,7 @@
 require('dotenv').config({path: '../.env'});
 
 import {logger} from "./logger";
-import {App} from './App';
+import {App} from './xscraperapi/App';
 import {UncheckedProxyGrabber} from './UncheckedProxyGrabber';
 import {ProxyChecker} from "./ProxyChecker";
 import {sequelize} from "./Sequelize";
@@ -24,26 +24,18 @@ let proxyChecker = new ProxyChecker(meterApi);
 app.listen(appPort).then(async () => {
     try {
         await sequelize.sync();
-        logger.info(`DB connected`);
+        console.log(`DB connected`);
     } catch (e) {
-        logger.error(`DB failed to connect. Reason: ${e}`);
+        console.log(`DB failed to connect. Reason: ${e}`);
         process.exit(1);
     }
 
     scheduler.scheduleJob(`*/${process.env.GRAB_TIMEOUT} * * * *`, async () => {
-        try {
-            await uncheckedProxyGrabber.populate();
-        } catch (e) {
-            logger.error(e);
-        }
+        await uncheckedProxyGrabber.populate();
     });
 
     scheduler.scheduleJob(`*/${process.env.CHECK_TIMEOUT} * * * *`, async () => {
-        try {
-            await proxyChecker.checkProxies();
-        } catch(e) {
-            logger.error(e);
-        }
+        await proxyChecker.checkProxies();
     });
 }, () => {
     process.exit();

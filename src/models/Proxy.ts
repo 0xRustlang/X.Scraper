@@ -34,7 +34,6 @@ function defaultMomentObject(): Moment {
 })
 @Scopes({
     check: {
-        attributes: ['port', 'server', 'checked', 'lastChecked'],
         where: {
             [Sequelize.Op.or]: {
                 lastChecked: {
@@ -45,11 +44,27 @@ function defaultMomentObject(): Moment {
         }
     },
     checked: {
-        attributes: ['isoCode', 'port', 'server', 'checked', 'lastChecked'],
-        include: [() => ProxyTransport],
         where: {
             checked: true
         }
+    },
+    protocol: (protocol: string | Array<string>) => {
+        let result = {
+            include: [{
+                model: ProxyTransport,
+                where: {
+                    lossRatio: {
+                        [Sequelize.Op.ne]: 1
+                    }
+                }
+            }]
+        };
+
+        if (!_.isNil(protocol)) {
+            result.include[0].where['protocol'] = protocol;
+        }
+
+        return result;
     }
 })
 @Table({
