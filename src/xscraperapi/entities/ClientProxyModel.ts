@@ -1,14 +1,14 @@
-import {IProxy} from "../../interfaces/IProxy";
-import {IProxyTransport} from "../../interfaces/IProxyTransport";
+import { IProxy } from "../../interfaces/IProxy";
+import { IProxyTransport } from "../../interfaces/IProxyTransport";
 
 class ClientProxyModel {
-    public ip: string;
-    public port: number;
-    public loss_ratio: number;
-    public ping_time_ms: number;
-    public protocol: string;
+    public ip : string;
+    public port : number;
+    public loss_ratio : number;
+    public ping_time_ms : number;
+    public protocol : string;
 
-    public constructor(proxy: IProxy, transport: IProxyTransport) {
+    public constructor(proxy : IProxy, transport : IProxyTransport) {
         this.ip = proxy.server;
         this.port = parseInt(proxy.port);
         this.loss_ratio = transport.lossRatio;
@@ -17,4 +17,4 @@ class ClientProxyModel {
     }
 }
 
-export {ClientProxyModel};
+export { ClientProxyModel };

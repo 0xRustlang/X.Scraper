@@ -1,20 +1,15 @@
 version: "2"
 services:
   node:
-    image: node:10
-    user: "node"
-    working_dir: /home/node/app
+    build:
+      context: .
     env_file: .env
-    volumes:
-      - ./:/home/node/app
-    restart: on-failure
     depends_on:
       - postgres
     ports:
       - "4040:4040"
     expose:
-      - "4040"
-    command: "npm run start"
+      - 4040
   postgres:
     restart: always
     image: postgres:9.6.2-alpine

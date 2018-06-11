@@ -1,22 +1,23 @@
-import {MeterApi} from "./xmeterapi/api";
-import {proxiesToXMeter, proxyNodesToProxies} from './utils';
-import {IProxy} from "./interfaces/IProxy";
+import { MeterApi } from "./xmeterapi/api";
+import { proxiesToXMeter, proxyNodesToProxies } from './utils';
+import { IProxy } from "./interfaces/IProxy";
 import * as moment from "moment";
 import * as _ from 'lodash';
-import {Proxy} from "./models/Proxy";
-import {ProxyTransport} from "./models/ProxyTransport";
+import { Proxy } from "./models/Proxy";
+import { ProxyTransport } from "./models/ProxyTransport";
+import { logger } from "./logger";
 
 class ProxyChecker {
-    private meterApi: MeterApi;
+    private meterApi : MeterApi;
 
-    constructor(meterApi: MeterApi) {
+    constructor(meterApi : MeterApi) {
         this.meterApi = meterApi;
     }
 
-    public async checkProxies(): Promise<void> {
+    public async checkProxies() : Promise<void> {
         let proxiesToCheck = await Proxy
             .scope('check')
-            .findAll({attributes: ['port', 'server', 'checked', 'lastChecked']});
+            .findAll({ attributes: ['port', 'server', 'checked', 'lastChecked'] });
 
         if (!_.size(proxiesToCheck)) {
             return;
@@ -25,21 +26,22 @@ class ProxyChecker {
         let xmeterRequest = proxiesToXMeter(proxiesToCheck);
         let xmeterResult = await this.meterApi.checkReliability(xmeterRequest);
 
-        //TODO: придумать что-нибудь получшееее
+        //TODO: придумать что-нибудь получше
         let checkedProxies = proxyNodesToProxies(xmeterResult.body);
-        await Proxy.destroy({where: {server: _.map(checkedProxies, 'server')}});
+        await Proxy.destroy({ where: { server: _.map(checkedProxies, 'server') } });
 
         let aliveProxies = _.filter(checkedProxies, ProxyChecker.isProxyAlive);
+        logger.debug(`Checked ${_.size(checkedProxies)} proxies. Alive: ${_.size(aliveProxies)}`);
         _.each(aliveProxies, async (aliveProxy) => {
-            await Proxy.create(aliveProxy, {include: [ProxyTransport]});
+            await Proxy.create(aliveProxy, { include: [ProxyTransport] });
         });
     }
 
-    private static isProxyAlive(proxy: IProxy): boolean {
+    private static isProxyAlive(proxy : IProxy) : boolean {
         return _.some(proxy.proxyTransports, (ratio) => {
             return ratio.lossRatio !== 1;
         })
     }
 }
 
-export {ProxyChecker};
+export { ProxyChecker };

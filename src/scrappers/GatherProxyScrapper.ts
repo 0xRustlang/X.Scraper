@@ -1,53 +1,51 @@
-import {IProxy} from "../interfaces/IProxy";
-import {IScrapper} from "../interfaces/IScrapper";
-
-const artoo = require('artoo-js');
-const request = require('request');
-const cheerio = require('cheerio');
+import { IProxy } from "../interfaces/IProxy";
+import { IScrapper } from "../interfaces/IScrapper";
+import * as phantom from 'phantom';
+import * as artoo from 'artoo-js';
+import * as cheerio from 'cheerio';
 
 artoo.bootstrap(cheerio);
 
+const noLog = () => { };
+
 class GatherProxyScrapper implements IScrapper {
-    public scrape() : Promise<Array<IProxy>> {
-        return new Promise(
-            (resolve, reject) => {
-                request(this.getProviderUrl(), (err, response, body) => {
-                    if (err) return reject(err);
+    public async scrape() : Promise<Array<IProxy>> {
+        const phantomInstance = await phantom.create([], { logger: { info: noLog, warn: noLog, error: noLog } });
+        const page = await phantomInstance.createPage();
 
-                    let self = this;
-                    let $ = cheerio.load(body);
-                    let proxyList = $('#tblproxy [type="text/javascript"]')
-                        .scrape({
-                            proxy: {
-                                method: function ($) {
-                                    return self.antiScrapper($(this).text());
-                                }
-                            }
-                        })
-                        .map((proxyNode) => {
-                            return proxyNode.proxy;
-                        });
+        const status = await page.open(this.getProviderUrl());
 
-                    resolve(proxyList);
-                });
-            });
+        if (status !== 'success') {
+            throw new Error('Failed to load the page');
+        }
+
+        let content = await page.property('content');
+        let $ = cheerio.load(content);
+
+        let result = $('#tblproxy tr')
+            .scrape(this.scrapeParams)
+            .splice(2);
+
+        await phantomInstance.exit();
+        return result;
     }
 
-    private antiScrapper(string: string) {
-        string = string.trim();
-        if (string.startsWith('gp'))
-            string = string.replace(/gp.insertPrx\((.*?)\);/, '$1');
-        let proxyRaw = JSON.parse(string);
-        return {
-            server: proxyRaw.PROXY_IP,
-            port: parseInt(proxyRaw.PROXY_PORT, 16).toString()
-        };
-    }
-
-    public getProviderUrl() {
+    public getProviderUrl() : string {
         return 'http://www.gatherproxy.com/ru';
+    }
+
+    protected get scrapeParams() : object {
+        return {
+            server: {
+                sel: 'td:nth-child(2)',
+                method: 'text'
+            },
+            port: {
+                sel: 'td:nth-child(3)',
+                method: 'text'
+            }
+        };
     }
 }
 
-
-export {GatherProxyScrapper};
+export { GatherProxyScrapper };

@@ -1,11 +1,11 @@
-import {IProxy} from './interfaces/IProxy';
-import {Proxy, ProxyNode, ProxyNodeTransport} from './xmeterapi/api';
+import { IProxy } from './interfaces/IProxy';
+import { Proxy, ProxyNode, ProxyNodeTransport } from './xmeterapi/api';
 import * as moment from 'moment';
-import {Moment} from 'moment';
-import {IProxyTransport} from "./interfaces/IProxyTransport";
+import { Moment } from 'moment';
+import { IProxyTransport } from "./interfaces/IProxyTransport";
 const _ = require('lodash');
 
-function proxiesToXMeter(proxies: Array<IProxy>): Array<Proxy> {
+function proxiesToXMeter(proxies : Array<IProxy>) : Array<Proxy> {
     return _.map(proxies, (proxy) => {
         let swagProxy = new Proxy();
         swagProxy.server = proxy.server;
@@ -14,7 +14,7 @@ function proxiesToXMeter(proxies: Array<IProxy>): Array<Proxy> {
     })
 }
 
-function proxyNodesToProxies(proxies: Array<ProxyNode>): Array<IProxy> {
+function proxyNodesToProxies(proxies : Array<ProxyNode>) : Array<IProxy> {
     return _.map(proxies, (proxy) => {
         return {
             proxyTransports: proxyNodeRatiosToProxyRatios(proxy.transport),
@@ -27,7 +27,7 @@ function proxyNodesToProxies(proxies: Array<ProxyNode>): Array<IProxy> {
     });
 }
 
-function proxyNodeRatiosToProxyRatios(proxyRatios: Array<ProxyNodeTransport>): Array<IProxyTransport> {
+function proxyNodeRatiosToProxyRatios(proxyRatios : Array<ProxyNodeTransport>) : Array<IProxyTransport> {
     return _.map(proxyRatios, (proxyRatio) => {
         return {
             lossRatio: proxyRatio.lossRatio,
@@ -37,15 +37,15 @@ function proxyNodeRatiosToProxyRatios(proxyRatios: Array<ProxyNodeTransport>): A
     });
 }
 
-function momentToSQL(instance: Moment) {
+function momentToSQL(instance : Moment) {
     return instance.format('YYYY-MM-DD HH:mm:ssZZ');
 }
 
-function sqlToMoment(timestamp: string) {
+function sqlToMoment(timestamp : string) {
     return moment.utc(timestamp, 'YYYY-MM-DD HH:mm:ssZZ');
 }
 
-_.mixin({'proxiesToSwagger': proxiesToXMeter});
-_.mixin({'swaggerProxyNodeToProxy': proxyNodesToProxies});
+_.mixin({ 'proxiesToSwagger': proxiesToXMeter });
+_.mixin({ 'swaggerProxyNodeToProxy': proxyNodesToProxies });
 
-export {proxiesToXMeter, proxyNodesToProxies, proxyNodeRatiosToProxyRatios, momentToSQL, sqlToMoment};
+export { proxiesToXMeter, proxyNodesToProxies, proxyNodeRatiosToProxyRatios, momentToSQL, sqlToMoment };

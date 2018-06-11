@@ -1,5 +1,5 @@
-import {Sequelize} from 'sequelize-typescript';
-import {logger} from "./logger";
+import { Sequelize } from 'sequelize-typescript';
+import { logger } from "./logger";
 
 export const sequelize = new Sequelize({
     dialect: 'postgres',
@@ -8,5 +8,5 @@ export const sequelize = new Sequelize({
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
     modelPaths: [__dirname + '/models'],
-    logging: (msg) => logger.debug(msg)
+    logging: () => { }
 });

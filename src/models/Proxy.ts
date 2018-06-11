@@ -18,14 +18,14 @@ import {
     Scopes, Sequelize,
     Table, UpdatedAt
 } from "sequelize-typescript";
-import {ProxyTransport} from "./ProxyTransport";
-import {Moment} from "moment";
+import { ProxyTransport } from "./ProxyTransport";
+import { Moment } from "moment";
 import * as _ from 'lodash';
-import {IProxy} from "../interfaces/IProxy";
+import { IProxy } from "../interfaces/IProxy";
 import moment = require("moment");
-import {momentToSQL, sqlToMoment} from "../utils";
+import { momentToSQL, sqlToMoment } from "../utils";
 
-function defaultMomentObject(): Moment {
+function defaultMomentObject() : Moment {
     return moment().utc().subtract(process.env.CHECK_TIMEOUT, 'minutes')
 }
 
@@ -48,7 +48,7 @@ function defaultMomentObject(): Moment {
             checked: true
         }
     },
-    protocol: (protocol: string | Array<string>) => {
+    protocol: (protocol : string | Array<string>) => {
         let result = {
             include: [{
                 model: ProxyTransport,
@@ -75,23 +75,23 @@ export class Proxy extends Model<Proxy> implements IProxy {
     @PrimaryKey
     @AllowNull(false)
     @Column(DataType.STRING(16))
-    server: string;
+    server : string;
 
     @AllowNull(false)
     @Column(DataType.STRING(5))
-    port: string;
+    port : string;
 
-    @Length({min: 2, max: 3})
+    @Length({ min: 2, max: 3 })
     @Column(DataType.STRING(3))
-    isoCode: string;
+    isoCode : string;
 
     @Default(false)
     @Column
-    checked: boolean;
+    checked : boolean;
 
 
     @Column(DataType.DATE)
-    get lastChecked(): Moment {
+    get lastChecked() : Moment {
         let dbDate = this.getDataValue('lastChecked');
 
         if (_.isNil(dbDate)) {
@@ -101,18 +101,18 @@ export class Proxy extends Model<Proxy> implements IProxy {
         return sqlToMoment(this.getDataValue('lastChecked'));
     };
 
-    set lastChecked(lastChecked: Moment) {
+    set lastChecked(lastChecked : Moment) {
         this.setDataValue('lastChecked', momentToSQL(lastChecked));
     };
 
     @HasMany(() => ProxyTransport)
-    proxyTransports: ProxyTransport[];
+    proxyTransports : ProxyTransport[];
 
     @CreatedAt
     @Column
-    createdAt: Date;
+    createdAt : Date;
 
     @UpdatedAt
     @Column
-    updatedAt: Date;
+    updatedAt : Date;
 }

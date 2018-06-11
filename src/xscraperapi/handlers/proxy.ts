@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import {Proxy} from "../../models/Proxy";
-import {IProxy} from "../../interfaces/IProxy";
-import {IProxyTransport} from "../../interfaces/IProxyTransport";
-import {ClientProxyModel} from "../entities/ClientProxyModel";
+import { Proxy } from "../../models/Proxy";
+import { IProxy } from "../../interfaces/IProxy";
+import { IProxyTransport } from "../../interfaces/IProxyTransport";
+import { ClientProxyModel } from "../entities/ClientProxyModel";
 
 class ProxyController {
     static async getProxiesByProtocol(req, res) {
@@ -17,10 +17,7 @@ class ProxyController {
                     attributes: ['isoCode', 'port', 'server', 'checked', 'lastChecked']
                 });
 
-            let response = _.reduce(proxies, (acc, proxy) => {
-                acc.push(new ClientProxyModel(proxy, ProxyController.getProxyTransport(proxy)));
-                return acc;
-            }, []);
+            let response = _.map(proxies, proxy => new ClientProxyModel(proxy, ProxyController.getProxyTransport(proxy)));
 
             return res.json(response);
         } catch (e) {
@@ -29,7 +26,7 @@ class ProxyController {
         }
     }
 
-    private static getProxyTransport(proxy: IProxy): IProxyTransport {
+    private static getProxyTransport(proxy : IProxy) : IProxyTransport {
         let priority = ['SOCKS5', 'HTTPS', 'HTTP'];
 
         return _(proxy.proxyTransports)

@@ -1,6 +1,6 @@
-import {Column, DataType, ForeignKey, Model, PrimaryKey, Table} from "sequelize-typescript";
-import {IProxyTransport} from "../interfaces/IProxyTransport";
-import {Proxy} from "./Proxy";
+import { Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { IProxyTransport } from "../interfaces/IProxyTransport";
+import { Proxy } from "./Proxy";
 
 @Table({
     tableName: 'proxy_transport'
@@ -8,16 +8,16 @@ import {Proxy} from "./Proxy";
 export class ProxyTransport extends Model<ProxyTransport> implements IProxyTransport {
     @PrimaryKey
     @Column(DataType.STRING(6))
-    protocol: string;
+    protocol : string;
 
     @Column(DataType.FLOAT)
-    lossRatio: number;
+    lossRatio : number;
 
     @Column(DataType.INTEGER)
-    pingTimeMs: number;
+    pingTimeMs : number;
 
     @ForeignKey(() => Proxy)
     @PrimaryKey
     @Column
-    proxyServer: string;
+    proxyServer : string;
 }

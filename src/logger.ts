@@ -12,9 +12,7 @@ const logger = winston.createLogger({
             name: 'Graylog',
             level: 'info',
             handleExceptions: true,
-            prelog: function (msg) {
-                return msg.trim();
-            },
+            prelog: msg => msg.trim(),
             graylog: {
                 servers: [{
                     host: process.env.GRAYLOG_SERVER,
@@ -37,11 +35,15 @@ if (process.env.NODE_ENV !== 'production') {
         ),
     }));
 
-    logger.add(new winston.transports.File({filename: 'error.log', level: 'info', handleExceptions: true}));
+    logger.add(new winston.transports.File({ filename: 'error.log', level: 'info', handleExceptions: true }));
 
     process.on('unhandledRejection', (reason, p) => {
         logger.error(`Unhandled Rejection at: Promise ${p} reason: ${reason}`);
     });
+
+    process.on('uncaughtException', function (exception) {
+        logger.error(`Unhandled exception ${exception}`);
+    });
 }
 
-export {logger};
+export { logger };

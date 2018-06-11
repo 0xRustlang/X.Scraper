@@ -1,8 +1,8 @@
-import {IProxy} from "./IProxy";
+import { IProxy } from "./IProxy";
 
 interface IScrapper {
-    scrape() :  Promise<Array<IProxy>>;
+    scrape(pageLimit?: number) : Promise<Array<IProxy>>;
     getProviderUrl() : string;
 }
 
-export {IScrapper};
+export { IScrapper };
