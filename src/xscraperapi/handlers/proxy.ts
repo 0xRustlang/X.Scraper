@@ -14,7 +14,7 @@ class ProxyController {
                         method: ['protocol', req.query.protocol]
                     })
                 .findAll({
-                    attributes: ['isoCode', 'port', 'server', 'checked', 'lastChecked']
+                    attributes: ['isoCode', 'port', 'server', 'country', 'checked', 'lastChecked']
                 });
 
             let response = _.map(proxies, proxy => new ClientProxyModel(proxy, ProxyController.getProxyTransport(proxy)));

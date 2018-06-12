@@ -10,7 +10,7 @@ const noLog = () => { };
 
 class GatherProxyScrapper implements IScrapper {
     public async scrape() : Promise<Array<IProxy>> {
-        const phantomInstance = await phantom.create([], { logger: { info: noLog, warn: noLog, error: noLog } });
+        const phantomInstance = await phantom.create([], { logger: { info: noLog, warn: noLog, error: noLog, debug: noLog } });
         const page = await phantomInstance.createPage();
 
         const status = await page.open(this.getProviderUrl());

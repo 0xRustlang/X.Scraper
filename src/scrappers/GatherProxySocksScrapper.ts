@@ -6,7 +6,7 @@ class GatherProxySocksScrapper extends GatherProxyScrapper {
     }
 
     protected get scrapeParams() : object {
-        let justText = function($) {
+        let justText = function ($) {
             return $(this)
                 .clone()
                 .children()

@@ -85,6 +85,9 @@ export class Proxy extends Model<Proxy> implements IProxy {
     @Column(DataType.STRING(3))
     isoCode : string;
 
+    @Column(DataType.STRING(50))
+    country : string;
+
     @Default(false)
     @Column
     checked : boolean;

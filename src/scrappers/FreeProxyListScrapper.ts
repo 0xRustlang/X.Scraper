@@ -13,7 +13,7 @@ class FreeProxyListScrapper implements IScrapper {
     public async scrape(pageLimit : number = Number.MAX_SAFE_INTEGER) : Promise<Array<IProxy>> {
         let limitCounter = pageLimit;
 
-        const phantomInstance = await phantom.create([], { logger: { info: noLog, warn: noLog, error: noLog } });
+        const phantomInstance = await phantom.create([], { logger: { info: noLog, warn: noLog, error: noLog, debug: noLog } });
         const page = await phantomInstance.createPage();
 
         const status = await page.open(this.getProviderUrl());

@@ -4,6 +4,7 @@ services:
     build:
       context: .
     env_file: .env
+    restart: on-failure
     depends_on:
       - postgres
     ports:

@@ -192,6 +192,7 @@ export class ProxyNode {
     'server'?: string;
     'port'?: string;
     'isoCode'?: string;
+    'country'?: string;
     'transport'?: Array<ProxyNodeTransport>;
 
     static discriminator = undefined;
@@ -210,6 +211,11 @@ export class ProxyNode {
         {
             "name": "isoCode",
             "baseName": "iso_code",
+            "type": "string"
+        },
+        {
+            "name": "country",
+            "baseName": "country",
             "type": "string"
         },
         {

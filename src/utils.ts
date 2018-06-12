@@ -21,6 +21,7 @@ function proxyNodesToProxies(proxies : Array<ProxyNode>) : Array<IProxy> {
             isoCode: proxy.isoCode,
             port: proxy.port,
             server: proxy.server,
+            country: proxy.country,
             checked: true,
             lastChecked: moment().utc()
         };
