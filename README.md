@@ -1,10 +1,10 @@
 # X.Scraper 
 
-Service for scrapping\serving\checking(via X.Meter) proxies
+Service for scrapping \ serving \ checking (via X.Meter) proxies
 
 ## Deployment via docker
 
-You need Graylog2 server and any implementation of X.Meter server.  
+You need Graylog2 server and any [implementation](https://github.com/FireX-Proxy/X.Meter.Api) of X.Meter server.  
 Check configuration lines at [.env](https://github.com/FireX-Proxy/X.Scraper/blob/master/.env)  
 And you are good to go with Docker.
 ```

@@ -1,7 +1,7 @@
 {
   "name": "x.scraper",
   "version": "1.0.0",
-  "description": "Service for scrapping/serving/checking(via X.Meter) proxies",
+  "description": "Service for scrapping \\ serving \\ checking (via X.Meter) proxies",
   "main": "./dist/index.js",
   "repository": "https://github.com/FireX-Proxy/X.Scraper",
   "scripts": {
