@@ -35,7 +35,7 @@ class UncheckedProxyGrabber {
 
             if (_.size(newProxies)) {
                 logger.debug(`Adding ${_.size(newProxies)} new proxies`);
-                await Proxy.bulkCreate(newProxies, { validate: true });
+                await Proxy.bulkCreate(newProxies, { validate: true, fields: ['server', 'port'] });
             }
         } catch (e) {
             logger.error(e);

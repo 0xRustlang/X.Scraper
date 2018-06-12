@@ -43,7 +43,8 @@ class ProxyChecker {
             for (let aliveProxy in aliveProxies) {
                 await Proxy.create(aliveProxies[aliveProxy], {
                     include: [ProxyTransport],
-                    transaction
+                    transaction,
+                    fields: ["server", "port", "isoCode", "country", "checked", "lastChecked", "createdAt", "updatedAt"]
                 });
             }
 

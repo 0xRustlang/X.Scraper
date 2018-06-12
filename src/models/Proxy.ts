@@ -33,13 +33,15 @@ function defaultMomentObject() : Moment {
     attributes: ['server', 'port']
 })
 @Scopes({
-    check: {
-        where: {
-            [Sequelize.Op.or]: {
-                lastChecked: {
-                    [Sequelize.Op.lte]: momentToSQL(defaultMomentObject())
-                },
-                checked: false
+    check: () => {
+        return {
+            where: {
+                [Sequelize.Op.or]: {
+                    lastChecked: {
+                        [Sequelize.Op.lte]: momentToSQL(defaultMomentObject())
+                    },
+                    checked: false
+                }
             }
         }
     },
@@ -68,11 +70,25 @@ function defaultMomentObject() : Moment {
     }
 })
 @Table({
-    tableName: 'proxy'
+    tableName: 'proxy',
+    indexes: [
+        {
+            unique: true,
+            fields: ['server', 'port']
+        },
+        {
+            name: 'time_index',
+            method: 'BTREE',
+            fields: ['lastChecked']
+        }
+    ]
 })
 export class Proxy extends Model<Proxy> implements IProxy {
-    @IsIP
     @PrimaryKey
+    @Column(DataType.INTEGER)
+    id : number;
+
+    @IsIP
     @AllowNull(false)
     @Column(DataType.STRING(16))
     server : string;

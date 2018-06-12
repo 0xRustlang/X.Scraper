@@ -41,7 +41,7 @@ class App {
                     return;
                 }
 
-                console.log(`Started listening on port ${port}`);
+                logger.debug(`Started listening on port ${port}`);
                 resolve();
             }));
     }
