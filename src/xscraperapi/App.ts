@@ -5,6 +5,8 @@ import * as expressWinston from 'express-winston';
 import * as swaggerize from 'swaggerize-express';
 import * as path from "path";
 
+const swaggerApi = require(path.join(process.cwd(), '/xscraperapi', '/swagger.json'));
+
 class App {
     private express : Express;
 
@@ -25,16 +27,20 @@ class App {
 
     private mountSwagger() : void {
         this.express.use(swaggerize({
-            api: require(path.join(process.cwd(), '/xscraperapi', '/swagger.json')),
+            api: swaggerApi,
             docspath: '/api-docs',
             handlers: './handlers'
         }));
+
+        this.express.use(swaggerApi.basePath, (err, req, res, next) => {
+            res.status(err.status).json(err);
+        });
+
     }
 
     public listen(port : number) : Promise<any> {
         return new Promise((resolve, reject) =>
             this.express.listen(port, (err) => {
-
                 if (err) {
                     console.log(`Couldn't bind to port: ${port}. Reason: ${err}`);
                     reject(new Error(`Couldn't bind to port: ${port}. Reason: ${err}`));

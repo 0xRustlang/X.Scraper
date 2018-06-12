@@ -6,6 +6,9 @@ import { ClientProxyModel } from "../entities/ClientProxyModel";
 
 class ProxyController {
     static async getProxiesByProtocol(req, res) {
+        let offset = req.query.offset;
+        let limit = req.query.limit;
+
         try {
             let proxies = await Proxy
                 .scope(
@@ -14,7 +17,9 @@ class ProxyController {
                         method: ['protocol', req.query.protocol]
                     })
                 .findAll({
-                    attributes: ['isoCode', 'port', 'server', 'country', 'checked', 'lastChecked']
+                    attributes: ['isoCode', 'port', 'server', 'country', 'checked', 'lastChecked'],
+                    offset: offset,
+                    limit: limit
                 });
 
             let response = _.map(proxies, proxy => new ClientProxyModel(proxy, ProxyController.getProxyTransport(proxy)));
