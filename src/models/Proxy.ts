@@ -1,5 +1,5 @@
 import {
-    AllowNull,
+    AllowNull, AutoIncrement,
     BeforeBulkCreate,
     BeforeBulkUpdate,
     BeforeCreate,
@@ -85,6 +85,7 @@ function defaultMomentObject() : Moment {
 })
 export class Proxy extends Model<Proxy> implements IProxy {
     @PrimaryKey
+    @AutoIncrement
     @Column(DataType.INTEGER)
     id : number;
 
