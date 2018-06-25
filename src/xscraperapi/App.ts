@@ -4,6 +4,7 @@ import { logger } from "../logger";
 import * as expressWinston from 'express-winston';
 import * as swaggerize from 'swaggerize-express';
 import * as path from "path";
+import * as cors from "cors";
 
 const swaggerApi = require(path.join(process.cwd(), '/xscraperapi', '/swagger.json'));
 
@@ -12,6 +13,7 @@ class App {
 
     constructor() {
         this.express = express();
+        this.cors();
         this.setLogging();
         this.mountSwagger();
     }
@@ -36,6 +38,10 @@ class App {
             res.status(err.status).json(err);
         });
 
+    }
+
+    private cors() : void {
+        this.express.use(cors());
     }
 
     public listen(port : number) : Promise<any> {
