@@ -1,3 +1,5 @@
+import * as moment from "moment";
+
 require('dotenv').config({ path: '.env' });
 
 import { logger } from "./logger";
@@ -5,8 +7,8 @@ import { App } from './xscraperapi/App';
 import { UncheckedProxyGrabber } from './UncheckedProxyGrabber';
 import { ProxyChecker } from "./ProxyChecker";
 import { sequelize } from "./Sequelize";
+import { Scheduler } from "./Scheduler";
 import xMeter = require('./xmeterapi/api');
-import scheduler = require('node-schedule');
 
 
 let appPort = parseInt(process.env.PORT || '8080');
@@ -31,13 +33,15 @@ app.listen(appPort).then(async () => {
         process.exit(1);
     }
 
-    scheduler.scheduleJob(`*/${process.env.GRAB_TIMEOUT} * * * *`, async () => {
+    try {
         await uncheckedProxyGrabber.populate();
-    });
-
-    scheduler.scheduleJob(`*/${process.env.CHECK_TIMEOUT} * * * *`, async () => {
         await proxyChecker.checkProxies();
-    });
+    } catch (e) {
+        logger.error(e.message);
+    }
+
+    Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(parseInt(process.env.GRAB_TIMEOUT), 'minutes').asMilliseconds());
+    Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(parseInt(process.env.CHECK_TIMEOUT), 'minutes').asMilliseconds());
 }, () => {
     process.exit();
 });

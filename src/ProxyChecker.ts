@@ -18,37 +18,63 @@ class ProxyChecker {
     public async checkProxies() : Promise<void> {
         let proxiesToCheck = await Proxy
             .scope('check')
-            .findAll({ attributes: ['port', 'server', 'checked', 'lastChecked'] });
+            .findAll({ attributes: ["id", "server", "port", "isoCode", "country", "checked", "lastChecked", "createdAt", "updatedAt"] });
 
         if (!_.size(proxiesToCheck)) {
             return;
         }
 
+        logger.debug(`Sending ${_.size(proxiesToCheck)} to XMeter`);
+
         let xmeterRequest = proxiesToXMeter(proxiesToCheck);
         let xmeterResult = await this.meterApi.checkReliability(xmeterRequest);
 
-        //TODO: придумать что-нибудь получше
         let checkedProxies = proxyNodesToProxies(xmeterResult.body);
         let transaction = await sequelize.transaction();
 
         try {
-            await Proxy.destroy({
-                where: { server: _.map(checkedProxies, 'server') },
-                transaction
+            let promises = [];
+            let counter = 0;
+
+            _.each(checkedProxies, (checkedProxy) => {
+                if (ProxyChecker.isProxyAlive(checkedProxy)) {
+                    counter++;
+                    let modeledProxy = _.find(proxiesToCheck, { server: checkedProxy.server, port: checkedProxy.port });
+
+                    promises.push( // update checked time
+                        modeledProxy.updateAttributes(checkedProxy, { transaction })
+                    );
+
+                    promises.push( // delete old transports
+                        ProxyTransport.destroy({
+                            where: { proxyServer: modeledProxy.id },
+                            transaction
+                        })
+                    );
+
+                    // create new transports
+                    _.each(checkedProxy.proxyTransports, (transport) => {
+                        let transportWithId = _.extend(transport, { proxyServer: modeledProxy.id });
+                        promises.push(
+                            ProxyTransport.create(transportWithId, { transaction })
+                        );
+                    });
+                } else {
+                    promises.push( // delete dead proxy
+                        Proxy.destroy({
+                            where: {
+                                server: checkedProxy.server,
+                                port: checkedProxy.port
+                            },
+                            transaction
+                        })
+                    )
+                }
             });
 
-            let aliveProxies = _.filter(checkedProxies, ProxyChecker.isProxyAlive);
-            logger.debug(`Checked ${_.size(checkedProxies)} proxies. Alive: ${_.size(aliveProxies)}`);
-
-            for (let aliveProxy in aliveProxies) {
-                await Proxy.create(aliveProxies[aliveProxy], {
-                    include: [ProxyTransport],
-                    transaction,
-                    fields: ["server", "port", "isoCode", "country", "checked", "lastChecked", "createdAt", "updatedAt"]
-                });
-            }
-
-            transaction.commit();
+            logger.debug(`Checked ${_.size(checkedProxies)} proxies. Alive: ${counter}`);
+            await Promise.all(promises);
+            await transaction.commit();
         } catch (e) {
             await transaction.rollback();
             logger.error(`Rollback. Reason: ${e}`);
