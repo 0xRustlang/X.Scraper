@@ -40,8 +40,8 @@ app.listen(appPort).then(async () => {
         logger.error(e.message);
     }
 
-    Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(parseInt(process.env.GRAB_TIMEOUT), 'minutes').asMilliseconds());
-    Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(parseInt(process.env.CHECK_TIMEOUT), 'minutes').asMilliseconds());
+    Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(process.env.GRAB_TIMEOUT).asMilliseconds());
+    Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(process.env.CHECK_TIMEOUT).asMilliseconds());
 }, () => {
     process.exit();
 });
