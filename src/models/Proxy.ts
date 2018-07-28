@@ -1,27 +1,20 @@
 import {
-    AllowNull, AutoIncrement,
-    BeforeBulkCreate,
-    BeforeBulkUpdate,
-    BeforeCreate,
-    BeforeUpdate,
+    AllowNull,
+    AutoIncrement,
     Column, CreatedAt,
     DataType,
     Default,
     DefaultScope,
-    HasMany,
     IsIP,
     Length,
-    Max,
-    Min,
     Model,
     PrimaryKey,
     Scopes, Sequelize,
     Table, UpdatedAt
 } from "sequelize-typescript";
-import { ProxyTransport } from "./ProxyTransport";
 import { Moment } from "moment";
 import * as _ from 'lodash';
-import { IProxy } from "../interfaces/IProxy";
+import { IProxy, ProtocolEnum } from "../interfaces/IProxy";
 import moment = require("moment");
 import { momentToSQL, sqlToMoment } from "../utils";
 
@@ -51,22 +44,11 @@ function defaultMomentObject() : Moment {
         }
     },
     protocol: (protocol : string | Array<string>) => {
-        let result = {
-            include: [{
-                model: ProxyTransport,
-                where: {
-                    lossRatio: {
-                        [Sequelize.Op.ne]: 1
-                    }
-                }
-            }]
+        return {
+            where: {
+                protocol: protocol
+            }
         };
-
-        if (!_.isNil(protocol)) {
-            result.include[0].where['protocol'] = protocol;
-        }
-
-        return result;
     }
 })
 @Table({
@@ -125,8 +107,14 @@ export class Proxy extends Model<Proxy> implements IProxy {
         this.setDataValue('lastChecked', momentToSQL(lastChecked));
     };
 
-    @HasMany(() => ProxyTransport)
-    proxyTransports : ProxyTransport[];
+    @Column(DataType.STRING(6))
+    protocol : ProtocolEnum;
+
+    @Column(DataType.FLOAT)
+    lossRatio : number;
+
+    @Column(DataType.INTEGER)
+    pingTimeMs : number;
 
     @CreatedAt
     @Column

@@ -1,5 +1,4 @@
-import { IProxy } from "../../interfaces/IProxy";
-import { IProxyTransport } from "../../interfaces/IProxyTransport";
+import { IProxy, ProtocolEnum } from "../../interfaces/IProxy";
 
 class ClientProxyModel {
     public server : string;
@@ -7,15 +6,15 @@ class ClientProxyModel {
     public loss_ratio : number;
     public country : string;
     public ping_time_ms : number;
-    public protocol : string;
+    public protocol : ProtocolEnum;
     public iso_code : string;
 
-    public constructor(proxy : IProxy, transport : IProxyTransport) {
+    public constructor(proxy : IProxy) {
         this.server = proxy.server;
         this.port = parseInt(proxy.port);
-        this.loss_ratio = transport.lossRatio;
-        this.ping_time_ms = transport.pingTimeMs;
-        this.protocol = transport.protocol;
+        this.loss_ratio = proxy.lossRatio;
+        this.ping_time_ms = proxy.pingTimeMs;
+        this.protocol = proxy.protocol;
         this.country = proxy.country;
         this.iso_code = proxy.isoCode;
     }

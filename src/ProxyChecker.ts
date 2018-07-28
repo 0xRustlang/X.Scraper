@@ -4,7 +4,6 @@ import { IProxy } from "./interfaces/IProxy";
 import * as moment from "moment";
 import * as _ from 'lodash';
 import { Proxy } from "./models/Proxy";
-import { ProxyTransport } from "./models/ProxyTransport";
 import { logger } from "./logger";
 import { sequelize } from "./Sequelize";
 
@@ -44,21 +43,6 @@ class ProxyChecker {
                     promises.push( // update checked time
                         modeledProxy.updateAttributes(checkedProxy, { transaction })
                     );
-
-                    promises.push( // delete old transports
-                        ProxyTransport.destroy({
-                            where: { proxyServer: modeledProxy.id },
-                            transaction
-                        })
-                    );
-
-                    // create new transports
-                    _.each(checkedProxy.proxyTransports, (transport) => {
-                        let transportWithId = _.extend(transport, { proxyServer: modeledProxy.id });
-                        promises.push(
-                            ProxyTransport.create(transportWithId, { transaction })
-                        );
-                    });
                 } else {
                     promises.push( // delete dead proxy
                         Proxy.destroy({
@@ -82,9 +66,7 @@ class ProxyChecker {
     }
 
     private static isProxyAlive(proxy : IProxy) : boolean {
-        return _.some(proxy.proxyTransports, (ratio) => {
-            return ratio.lossRatio !== 1;
-        })
+        return proxy.lossRatio !== 1;
     }
 }
 

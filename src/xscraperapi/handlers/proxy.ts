@@ -1,43 +1,39 @@
 import * as _ from 'lodash';
 import { Proxy } from "../../models/Proxy";
-import { IProxy } from "../../interfaces/IProxy";
-import { IProxyTransport } from "../../interfaces/IProxyTransport";
 import { ClientProxyModel } from "../entities/ClientProxyModel";
 
 class ProxyController {
     static async getProxiesByProtocol(req, res) {
         let offset = req.query.offset;
-        let limit = req.query.limit;
+        let limit = req.query.limit || 100;
 
         try {
             let proxies = await Proxy
                 .scope(
-                    'checked',
-                    {
-                        method: ['protocol', req.query.protocol]
-                    })
+                    'checked'
+                )
+                .scope(
+                    req.query.protocol
+                        ? { method: ['protocol', req.query.protocol] }
+                        : {}
+                )
                 .findAll({
-                    attributes: ['isoCode', 'port', 'server', 'country', 'checked', 'lastChecked'],
+                    attributes: ['isoCode', 'port', 'server', 'country', 'checked', 'lastChecked', 'createdAt', 'protocol', 'pingTimeMs', 'lossRatio'],
                     offset: offset,
-                    limit: limit
+                    limit: limit,
+                    order: [
+                        ['createdAt', 'ASC'],
+                        ['lastChecked', 'DESC']
+                    ]
                 });
 
-            let response = _.map(proxies, proxy => new ClientProxyModel(proxy, ProxyController.getProxyTransport(proxy)));
+            let response = _.map(proxies, proxy => new ClientProxyModel(proxy));
 
             return res.json(response);
         } catch (e) {
             res.json([]);
             throw e;
         }
-    }
-
-    private static getProxyTransport(proxy : IProxy) : IProxyTransport {
-        let priority = ['SOCKS5', 'HTTPS', 'HTTP'];
-
-        return _(proxy.proxyTransports)
-            .sort(protocol => priority.indexOf(protocol.protocol))
-            .first();
-
     }
 }
 

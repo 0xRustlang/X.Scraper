@@ -37,7 +37,11 @@ app.listen(appPort).then(async () => {
         await uncheckedProxyGrabber.populate();
         await proxyChecker.checkProxies();
     } catch (e) {
-        logger.error(e.message);
+        if (e.message) {
+            logger.error(e.message);
+        } else {
+            logger.error(JSON.stringify(e));
+        }
     }
 
     Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(process.env.GRAB_TIMEOUT).asMilliseconds());
