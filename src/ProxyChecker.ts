@@ -1,7 +1,6 @@
 import { MeterApi } from "./xmeterapi/api";
 import { proxiesToXMeter, proxyNodesToProxies } from './utils';
 import { IProxy } from "./interfaces/IProxy";
-import * as moment from "moment";
 import * as _ from 'lodash';
 import { Proxy } from "./models/Proxy";
 import { logger } from "./logger";
@@ -17,7 +16,9 @@ class ProxyChecker {
     public async checkProxies() : Promise<void> {
         let proxiesToCheck = await Proxy
             .scope('check')
-            .findAll({ attributes: ["id", "server", "port", "isoCode", "country", "checked", "lastChecked", "createdAt", "updatedAt"] });
+            .findAll({
+                attributes: ["id", "server", "port", "isoCode", "country", "checked", "lastChecked", "createdAt", "updatedAt"]
+            });
 
         if (!_.size(proxiesToCheck)) {
             return;
@@ -40,11 +41,14 @@ class ProxyChecker {
                     counter++;
                     let modeledProxy = _.find(proxiesToCheck, { server: checkedProxy.server, port: checkedProxy.port });
 
-                    promises.push( // update checked time
+                    /**
+                     * Update checked time
+                     */
+                    promises.push(
                         modeledProxy.updateAttributes(checkedProxy, { transaction })
                     );
                 } else {
-                    promises.push( // delete dead proxy
+                    promises.push(
                         Proxy.destroy({
                             where: {
                                 server: checkedProxy.server,

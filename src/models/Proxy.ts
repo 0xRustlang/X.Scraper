@@ -12,6 +12,7 @@ import {
     Scopes, Sequelize,
     Table, UpdatedAt
 } from "sequelize-typescript";
+
 import { Moment } from "moment";
 import * as _ from 'lodash';
 import { IProxy, ProtocolEnum } from "../interfaces/IProxy";

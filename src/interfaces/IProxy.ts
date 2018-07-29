@@ -18,5 +18,4 @@ export enum ProtocolEnum {
     SOCKS5 = <any>'SOCKS5'
 }
 
-
 export { IProxy };

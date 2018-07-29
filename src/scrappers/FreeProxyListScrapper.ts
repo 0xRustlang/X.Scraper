@@ -27,7 +27,7 @@ class FreeProxyListScrapper implements IScrapper {
 
         do {
             let content = await page.property('content');
-            result = result.concat(this.parsePage(content));
+            result = result.concat(FreeProxyListScrapper.parsePage(content));
 
             buttonClasses = await page.evaluate(function () {
                 return document.getElementById('proxylisttable_next').classList;
@@ -45,7 +45,7 @@ class FreeProxyListScrapper implements IScrapper {
         return result;
     }
 
-    private parsePage(page : string) : Array<IProxy> {
+    private static parsePage(page : string) : Array<IProxy> {
         let $ = cheerio.load(page);
         return $('#proxylisttable tbody tr')
             .scrape({

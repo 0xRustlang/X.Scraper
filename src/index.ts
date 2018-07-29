@@ -8,12 +8,11 @@ import { UncheckedProxyGrabber } from './UncheckedProxyGrabber';
 import { ProxyChecker } from "./ProxyChecker";
 import { sequelize } from "./Sequelize";
 import { Scheduler } from "./Scheduler";
-import xMeter = require('./xmeterapi/api');
+import { MeterApi } from './xmeterapi/api';
 
-
-let appPort = parseInt(process.env.PORT || '8080');
+const appPort = parseInt(process.env.PORT || '8080');
 const app = new App();
-const meterApi = new xMeter.MeterApi(process.env.XMETER_USERNAME, process.env.XMETER_PASSWORD, process.env.XMETER_HOST);
+const meterApi = new MeterApi(process.env.XMETER_USERNAME, process.env.XMETER_PASSWORD, process.env.XMETER_HOST);
 
 const scrappers = [
     require('./scrappers/GatherProxyScrapper').GatherProxyScrapper,
@@ -21,8 +20,8 @@ const scrappers = [
     require('./scrappers/FreeProxyListScrapper').FreeProxyListScrapper
 ].map(scrapper => new scrapper());
 
-let uncheckedProxyGrabber = new UncheckedProxyGrabber({ scrappers: scrappers });
-let proxyChecker = new ProxyChecker(meterApi);
+const uncheckedProxyGrabber = new UncheckedProxyGrabber({ scrappers: scrappers });
+const proxyChecker = new ProxyChecker(meterApi);
 
 app.listen(appPort).then(async () => {
     try {

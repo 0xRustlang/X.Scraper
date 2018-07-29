@@ -5,7 +5,8 @@
   "main": "./dist/index.js",
   "repository": "https://github.com/FireX-Proxy/X.Scraper",
   "scripts": {
-    "start": "node ./dist/index.js"
+    "start": "node ./dist/index.js",
+    "build": "tsc"
   },
   "author": "FireX-Proxy team",
   "license": "MIT",

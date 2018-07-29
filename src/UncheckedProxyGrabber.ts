@@ -4,9 +4,8 @@ import { Proxy } from "./models/Proxy"
 import * as _ from 'lodash';
 import { logger } from "./logger";
 
-
 class UncheckedProxyGrabber {
-    private scrappers : Array<IScrapper>;
+    private readonly scrappers : Array<IScrapper>;
 
     public constructor(opts) {
         opts = _.defaults(opts, { scrappers: {} });
@@ -15,7 +14,7 @@ class UncheckedProxyGrabber {
 
     private async grab() : Promise<Array<IProxy>> {
         try {
-            let data = await Promise.all(this.mapScrappers(this.scrappers));
+            let data = await Promise.all(UncheckedProxyGrabber.mapScrappers(this.scrappers));
             return _(data)
                 .flatten()
                 .uniqBy('server')
@@ -42,10 +41,8 @@ class UncheckedProxyGrabber {
         }
     }
 
-    private mapScrappers(scrappers : Array<IScrapper>) : Array<Promise<Array<IProxy>>> {
-        return _.map(scrappers, (scrapper) => {
-            return scrapper.scrape();
-        });
+    private static mapScrappers(scrappers : Array<IScrapper>) : Array<Promise<Array<IProxy>>> {
+        return _.map(scrappers, scrapper => scrapper.scrape());
     }
 }
 
