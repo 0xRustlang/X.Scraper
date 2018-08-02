@@ -21,6 +21,7 @@
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "express-winston": "^2.5.1",
+    "influx": "^5.0.7",
     "lodash": "^4.17.10",
     "moment": "^2.22.1",
     "pg": "^7.4.3",

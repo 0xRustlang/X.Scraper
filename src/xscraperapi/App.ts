@@ -5,6 +5,8 @@ import * as expressWinston from 'express-winston';
 import * as swaggerize from 'swaggerize-express';
 import * as path from "path";
 import * as cors from "cors";
+import { expressInfluxMetrics } from '../expressMetricsInflux'
+import { InfluxDB } from "influx";
 
 const swaggerApi = require(path.join(process.cwd(), '/xscraperapi', '/swagger.json'));
 
@@ -13,25 +15,38 @@ class App {
 
     constructor() {
         this.express = express();
-        this.cors();
+
+        this.express.use(cors());
         this.setLogging();
+        this.express.use(expressInfluxMetrics({
+            batchSize: 10,
+            logger: logger,
+            influxClient: new InfluxDB({
+                host     : process.env.INFLUXDB_HOST,
+                port     : parseInt(process.env.INFLUXDB_PORT),
+                username : process.env.INFLUXDB_USERNAME,
+                password : process.env.INFLUXDB_PASSWORD,
+                database : process.env.INFLUXDB_DATABASE
+            })
+        }));
+
         this.mountSwagger();
     }
 
     private setLogging() : void {
         this.express.use(expressWinston.logger({
-            meta: true,
-            msg: "HTTP {{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}",
-            level: 'info',
-            winstonInstance: logger
+            meta            : true,
+            msg             : "HTTP {{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}",
+            level           : 'info',
+            winstonInstance : logger
         }));
     }
 
     private mountSwagger() : void {
         this.express.use(swaggerize({
-            api: swaggerApi,
-            docspath: '/api-docs',
-            handlers: './handlers'
+            api      : swaggerApi,
+            docspath : '/api-docs',
+            handlers : './handlers'
         }));
 
         this.express.use(swaggerApi.basePath, (err, req, res, next) => {
@@ -40,22 +55,21 @@ class App {
 
     }
 
-    private cors() : void {
-        this.express.use(cors());
-    }
-
     public listen(port : number) : Promise<any> {
-        return new Promise((resolve, reject) =>
-            this.express.listen(port, (err) => {
-                if (err) {
-                    console.log(`Couldn't bind to port: ${port}. Reason: ${err}`);
-                    reject(new Error(`Couldn't bind to port: ${port}. Reason: ${err}`));
-                    return;
-                }
+        return new Promise(
+            (resolve, reject) => {
+                this.express.listen(port, (err) => {
+                    if (err) {
+                        console.log(`Couldn't bind to port: ${port}. Reason: ${err}`);
+                        reject(new Error(`Couldn't bind to port: ${port}. Reason: ${err}`));
+                        return;
+                    }
 
-                logger.debug(`Started listening on port ${port}`);
-                resolve();
-            }));
+                    logger.debug(`Started listening on port ${port}`);
+                    resolve();
+                });
+            }
+        );
     }
 }
 
