@@ -15,15 +15,24 @@ export function expressInfluxMetrics(options: ExpressMiddlewareOptions): any {
 
     eventEmitter.on('addPoint', () => {
         if (points.length >= options.batchSize) {
-            options.influxClient
-                .writePoints(points)
-                .catch(
-                    (reason: any) => {
-                        options.logger.warn(reason.message);
-                    }
-                );
+            try {
+                options.influxClient
+                    .writeMeasurement('requests', points)
+                    .then(
+                        () => {
+                            points = [];
+                        }
+                    )
+                    .catch(
+                        (reason: any) => {
+                            options.logger.warn(reason.message);
+                        }
+                    );
+            } catch (e) {
+                options.logger.warn(e.message);
+            }
 
-            points = []
+            points = [];
         }
     });
 
@@ -34,7 +43,7 @@ export function expressInfluxMetrics(options: ExpressMiddlewareOptions): any {
             let responseTime = Date.now() - requestStartedAt;
 
             points.push({
-                measurement: 'requests',
+                timestamp: new Date(),
                 tags: {
                     path   : request.path,
                     host   : request.hostname,
