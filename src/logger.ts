@@ -1,5 +1,5 @@
 import * as winston from "winston";
-import * as WinstonGraylog2 from "winston-graylog2";
+//import * as WinstonGraylog2 from "winston-graylog2";
 
 const logger = winston.createLogger({
     format: winston.format.combine(
@@ -8,21 +8,24 @@ const logger = winston.createLogger({
     ),
     exitOnError: false,
     transports: [
-        new WinstonGraylog2({
-            name: 'Graylog',
-            level: 'info',
-            handleExceptions: true,
-            prelog: msg => msg.trim(),
-            graylog: {
-                servers: [{
-                    host: process.env.GRAYLOG_SERVER,
-                    port: process.env.GRAYLOG_PORT
-                }],
-                hostname: 'X.Scraper',
-                facility: 'X.Scraper',
-                bufferSize: 1400
-            }
+        new winston.transports.Console({
+            level: 'info'
         })
+        // new WinstonGraylog2({
+        //     name: 'Graylog',
+        //     level: 'info',
+        //     handleExceptions: true,
+        //     prelog: msg => msg.trim(),
+        //     graylog: {
+        //         servers: [{
+        //             host: process.env.GRAYLOG_SERVER,
+        //             port: process.env.GRAYLOG_PORT
+        //         }],
+        //         hostname: 'X.Scraper',
+        //         facility: 'X.Scraper',
+        //         bufferSize: 1400
+        //     }
+        // })
     ]
 });
 

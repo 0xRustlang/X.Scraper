@@ -10,9 +10,7 @@ class ProxyController {
         try {
             let proxies = await Proxy
                 .scope(
-                    'checked'
-                )
-                .scope(
+                    'checked',
                     req.query.protocol
                         ? { method: ['protocol', req.query.protocol] }
                         : {}
