@@ -22,8 +22,8 @@ class ProxyController {
                     offset: offset,
                     limit: limit,
                     order: [
-                        ['createdAt', 'ASC'],
-                        ['lastChecked', 'DESC']
+                        ['createdAt', 'DESC'],
+                        ['pingTimeMs', 'ASC']
                     ]
                 });
 
