@@ -34,14 +34,16 @@ function defaultMomentObject() : Moment {
                     lastChecked: {
                         [Sequelize.Op.lte]: momentToSQL(defaultMomentObject())
                     },
-                    checked: false
+                    checkedTimes: 0
                 }
             }
         }
     },
     checked: {
         where: {
-            checked: true
+            checkedTimes: {
+                [Sequelize.Op.gte]: 2
+            }
         }
     },
     protocol: (protocol : string | Array<string>) => {
@@ -88,9 +90,9 @@ export class Proxy extends Model<Proxy> implements IProxy {
     @Column(DataType.STRING(50))
     country : string;
 
-    @Default(false)
+    @Default(0)
     @Column
-    checked : boolean;
+    checkedTimes : number;
 
 
     @Column(DataType.DATE)

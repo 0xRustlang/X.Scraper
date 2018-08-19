@@ -5,7 +5,7 @@ interface IProxy {
     port : string;
     isoCode?: string;
     country?: string;
-    checked : boolean;
+    checkedTimes: number;
     pingTimeMs?: number;
     lossRatio?: number;
     protocol?: ProtocolEnum;

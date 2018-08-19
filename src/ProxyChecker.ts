@@ -17,7 +17,7 @@ class ProxyChecker {
         let proxiesToCheck = await Proxy
             .scope('check')
             .findAll({
-                attributes: ["id", "server", "port", "isoCode", "country", "checked", "lastChecked", "createdAt", "updatedAt"]
+                attributes: ["id", "server", "port", "isoCode", "country", "checkedTimes", "lastChecked", "createdAt", "updatedAt"]
             });
 
         if (!_.size(proxiesToCheck)) {
@@ -39,13 +39,14 @@ class ProxyChecker {
             _.each(checkedProxies, (checkedProxy) => {
                 if (ProxyChecker.isProxyAlive(checkedProxy)) {
                     counter++;
-                    let modeledProxy = _.find(proxiesToCheck, { server: checkedProxy.server, port: checkedProxy.port });
+                    let proxyModel = _.find(proxiesToCheck, { server: checkedProxy.server, port: checkedProxy.port });
+                    checkedProxy.checkedTimes = proxyModel.checkedTimes + 1;
 
                     /**
                      * Update checked time
                      */
                     promises.push(
-                        modeledProxy.updateAttributes(checkedProxy, { transaction })
+                        proxyModel.updateAttributes(checkedProxy, { transaction })
                     );
                 } else {
                     promises.push(

@@ -16,7 +16,7 @@ class ProxyController {
                         : {}
                 )
                 .findAll({
-                    attributes: ['isoCode', 'port', 'server', 'country', 'checked', 'lastChecked', 'createdAt', 'protocol', 'pingTimeMs', 'lossRatio'],
+                    attributes: ['isoCode', 'port', 'server', 'country', 'checkedTimes', 'lastChecked', 'createdAt', 'protocol', 'pingTimeMs', 'lossRatio'],
                     offset: offset,
                     limit: limit,
                     order: [
