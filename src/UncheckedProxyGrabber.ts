@@ -30,7 +30,7 @@ class UncheckedProxyGrabber {
         try {
             let grabbedProxies = await this.grab();
             let existing = await Proxy.findAll();
-            let newProxies = _.differenceBy(grabbedProxies, existing, (value) => value.server + value.port);
+            let newProxies = _.differenceBy(grabbedProxies, existing, (value) => `${value.server}:${value.port}`);
 
             if (_.size(newProxies)) {
                 logger.debug(`Adding ${_.size(newProxies)} new proxies`);
