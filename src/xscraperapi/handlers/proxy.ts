@@ -5,7 +5,7 @@ import { ClientProxyModel } from "../entities/ClientProxyModel";
 class ProxyController {
     static async getProxiesByProtocol(req, res) {
         let offset = req.query.offset;
-        let limit = req.query.limit || 100;
+        let limit = req.query.limit || 150;
 
         try {
             let proxies = await Proxy
