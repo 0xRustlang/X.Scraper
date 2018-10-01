@@ -6,7 +6,8 @@
   "repository": "https://github.com/FireX-Proxy/X.Scraper",
   "scripts": {
     "start": "node ./dist/index.js",
-    "build": "tsc"
+    "build": "tsc",
+    "routes": "./node_modules/.bin/tsoa routes"
   },
   "author": "FireX-Proxy team",
   "license": "MIT",
@@ -23,6 +24,7 @@
     "express-winston": "^2.5.1",
     "influx": "^5.0.7",
     "lodash": "^4.17.10",
+    "method-override": "^3.0.0",
     "moment": "^2.22.1",
     "pg": "^7.4.3",
     "phantom": "^4.0.12",
@@ -31,6 +33,7 @@
     "sequelize": "^4.37.10",
     "sequelize-typescript": "^0.6.5",
     "swaggerize-express": "^4.0.5",
+    "tsoa": "^2.2.0",
     "winston": "^3.0.0-rc6"
   }
 }

@@ -1,12 +1,12 @@
-import { GatherProxyScrapper } from "./GatherProxyScrapper";
+import GatherProxyScrapper from "./GatherProxyScrapper";
 
-class GatherProxySocksScrapper extends GatherProxyScrapper {
-    public getProviderUrl() : string {
+export default class GatherProxySocksScrapper extends GatherProxyScrapper {
+    public getProviderUrl(): string {
         return 'http://www.gatherproxy.com/ru/sockslist';
     }
 
-    protected get scrapeParams() : object {
-        let justText = function ($) {
+    protected get scrapeParams(): object {
+        let plainText = function ($) {
             return $(this)
                 .clone()
                 .children()
@@ -18,14 +18,12 @@ class GatherProxySocksScrapper extends GatherProxyScrapper {
         return {
             server: {
                 sel: 'td:nth-child(2)',
-                method: justText
+                method: plainText
             },
             port: {
                 sel: 'td:nth-child(3)',
-                method: justText
+                method: plainText
             }
         };
     }
 }
-
-export { GatherProxySocksScrapper };

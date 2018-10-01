@@ -2,9 +2,10 @@ import { IProxy } from './interfaces/IProxy';
 import { Proxy, ProxyNode, ProxyNodeTransport } from './xmeterapi/api';
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import * as path from "path";
 const _ = require('lodash');
 
-function proxiesToXMeter(proxies : Array<IProxy>) : Array<Proxy> {
+function proxiesToXMeter(proxies : Array<IProxy>): Array<Proxy> {
     return _.map(proxies, (proxy) => {
         let swagProxy = new Proxy();
         swagProxy.server = proxy.server;
@@ -13,7 +14,7 @@ function proxiesToXMeter(proxies : Array<IProxy>) : Array<Proxy> {
     })
 }
 
-function proxyNodesToProxies(proxies : Array<ProxyNode>) : Array<IProxy> {
+function proxyNodesToProxies(proxies : Array<ProxyNode>): Array<IProxy> {
     return _.map(proxies, (proxy) => {
         let aliveTransports : Array<ProxyNodeTransport> = _.filter(proxy.transport, (transport) => transport.lossRatio !== 1);
         let aliveTransport : ProxyNodeTransport = _.size(aliveTransports) ? _.first(aliveTransports) : _.first(proxy.transport);

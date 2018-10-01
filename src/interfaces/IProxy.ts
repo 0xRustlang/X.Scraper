@@ -1,6 +1,6 @@
 import { Moment } from "moment";
 
-interface IProxy {
+export interface IProxy {
     server : string;
     port : string;
     isoCode?: string;
@@ -17,5 +17,3 @@ export enum ProtocolEnum {
     HTTP = <any>'HTTP',
     SOCKS5 = <any>'SOCKS5'
 }
-
-export { IProxy };

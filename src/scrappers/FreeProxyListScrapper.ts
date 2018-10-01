@@ -7,62 +7,60 @@ import * as cheerio from 'cheerio';
 
 artoo.bootstrap(cheerio);
 
-const noLog = () => { };
-
-class FreeProxyListScrapper implements IScrapper {
-    public async scrape(pageLimit : number = Number.MAX_SAFE_INTEGER) : Promise<Array<IProxy>> {
+export default class FreeProxyListScrapper implements IScrapper {
+    public async scrape(pageLimit: number = 100): Promise<Array<IProxy>> {
         let limitCounter = pageLimit;
 
-        const phantomInstance = await phantom.create([], { logger: { info: noLog, warn: noLog, error: noLog, debug: noLog } });
+        const phantomInstance = await phantom.create([], { logLevel: 'error' });
         const page = await phantomInstance.createPage();
-
         const status = await page.open(this.getProviderUrl());
 
-        if (status !== 'success') {
-            throw new Error('Failed to load the page');
-        }
-
         let result = [];
-        let buttonClasses = [];
 
-        do {
-            let content = await page.property('content');
-            result = result.concat(FreeProxyListScrapper.parsePage(content));
+        if (status === 'success') {
+            let buttonClasses = [];
 
-            buttonClasses = await page.evaluate(function () {
-                return document.getElementById('proxylisttable_next').classList;
-            });
+            do {
+                const content = await page.property('content');
+                result = result.concat(FreeProxyListScrapper.parsePage(content));
 
-            await page.evaluate(function () {
-                return document.getElementById('proxylisttable_next').click()
-            });
+                buttonClasses = await page.evaluate(function () {
+                    return document.getElementById('proxylisttable_next').classList;
+                });
 
-            limitCounter -= 1;
-        } while (!_.includes(buttonClasses, 'disabled') && limitCounter >= 0);
+                if (!buttonClasses) {
+                    break;
+                }
+
+                await page.evaluate(function () {
+                    return document.getElementById('proxylisttable_next').click()
+                });
+
+                limitCounter -= 1;
+            } while (!_.includes(buttonClasses, 'disabled') && limitCounter >= 0);
+        }
 
         await phantomInstance.exit();
 
         return result;
     }
 
-    private static parsePage(page : string) : Array<IProxy> {
-        let $ = cheerio.load(page);
-        return $('#proxylisttable tbody tr')
-            .scrape({
-                server: {
-                    sel: 'td:nth-child(1)',
-                    method: 'text'
-                },
-                port: {
-                    sel: 'td:nth-child(2)',
-                    method: 'text'
-                }
-            });
+    private static parsePage(page: string): Array<IProxy> {
+        const $ = cheerio.load(page);
+
+        return $('#proxylisttable tbody tr').scrape({
+            server: {
+                sel: 'td:nth-child(1)',
+                method: 'text'
+            },
+            port: {
+                sel: 'td:nth-child(2)',
+                method: 'text'
+            }
+        });
     }
 
-    public getProviderUrl() : string {
-        return 'https://free-proxy-list.net/';
+    public getProviderUrl(): string {
+        return 'https://free-proxy-list.net';
     }
 }
-
-export { FreeProxyListScrapper };

@@ -1,6 +1,6 @@
-import { logger } from "./logger";
+import logger from "./logger";
 
-class Scheduler {
+export default class Scheduler {
     public static schedule(fn : () => Promise<any>, interval : number) {
         let executor = async function () {
             try {
@@ -15,5 +15,3 @@ class Scheduler {
         setTimeout(executor, interval);
     }
 }
-
-export { Scheduler }

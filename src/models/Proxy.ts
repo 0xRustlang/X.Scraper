@@ -16,10 +16,10 @@ import {
 import { Moment } from "moment";
 import * as _ from 'lodash';
 import { IProxy, ProtocolEnum } from "../interfaces/IProxy";
-import moment = require("moment");
+import * as moment from 'moment';
 import { momentToSQL, sqlToMoment } from "../utils";
 
-function defaultMomentObject() : Moment {
+function defaultMomentObject(): Moment {
     return moment().utc().subtract(process.env.CHECK_TIMEOUT, 'minutes')
 }
 
@@ -43,6 +43,15 @@ function defaultMomentObject() : Moment {
         where: {
             checkedTimes: {
                 [Sequelize.Op.gte]: 2
+            }
+        }
+    },
+    checkedTimes: (times: Number) => {
+        return {
+            where: {
+                checkedTimes: {
+                    [Sequelize.Op.gte]: times
+                }
             }
         }
     },
@@ -72,31 +81,33 @@ export class Proxy extends Model<Proxy> implements IProxy {
     @PrimaryKey
     @AutoIncrement
     @Column(DataType.INTEGER)
-    id : number;
+    id: number;
 
     @IsIP
     @AllowNull(false)
     @Column(DataType.STRING(16))
-    server : string;
+    server: string;
 
     @AllowNull(false)
     @Column(DataType.STRING(5))
-    port : string;
+    port: string;
 
-    @Length({ min: 2, max: 3 })
+    @Length({
+        min: 2,
+        max: 3
+    })
     @Column(DataType.STRING(3))
-    isoCode : string;
+    isoCode: string;
 
     @Column(DataType.STRING(50))
-    country : string;
+    country: string;
 
     @Default(0)
     @Column
-    checkedTimes : number;
-
+    checkedTimes: number;
 
     @Column(DataType.DATE)
-    get lastChecked() : Moment {
+    get lastChecked(): Moment {
         let dbDate = this.getDataValue('lastChecked');
 
         if (_.isNil(dbDate)) {
@@ -106,24 +117,24 @@ export class Proxy extends Model<Proxy> implements IProxy {
         return sqlToMoment(this.getDataValue('lastChecked'));
     };
 
-    set lastChecked(lastChecked : Moment) {
+    set lastChecked(lastChecked: Moment) {
         this.setDataValue('lastChecked', momentToSQL(lastChecked));
     };
 
     @Column(DataType.STRING(6))
-    protocol : ProtocolEnum;
+    protocol: ProtocolEnum;
 
     @Column(DataType.FLOAT)
-    lossRatio : number;
+    lossRatio: number;
 
     @Column(DataType.INTEGER)
-    pingTimeMs : number;
+    pingTimeMs: number;
 
     @CreatedAt
     @Column
-    createdAt : Date;
+    createdAt: Date;
 
     @UpdatedAt
     @Column
-    updatedAt : Date;
+    updatedAt: Date;
 }

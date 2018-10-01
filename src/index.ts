@@ -1,50 +1,77 @@
-import * as moment from "moment";
-
 require('dotenv').config({ path: '.env' });
 
-import { logger } from "./logger";
-import { App } from './xscraperapi/App';
-import { UncheckedProxyGrabber } from './UncheckedProxyGrabber';
-import { ProxyChecker } from "./ProxyChecker";
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
+import * as cors from "cors";
+import * as methodOverride from 'method-override';
+import * as moment from 'moment';
+
+import logger from "./logger";
+import influx from "./influxClient";
+import Scheduler from "./Scheduler";
+import ProxyChecker from "./ProxyChecker";
+import UncheckedProxyGrabber from "./UncheckedProxyGrabber";
+import GatherProxyScrapper from "./scrappers/GatherProxyScrapper";
+import GatherProxySocksScrapper from "./scrappers/GatherProxySocksScrapper";
+import FreeProxyListScrapper from "./scrappers/FreeProxyListScrapper";
+
+import { RegisterRoutes } from './routes/routes';
+import { expressInfluxMetrics } from "./expressMetricsInflux";
 import { sequelize } from "./Sequelize";
-import { Scheduler } from "./Scheduler";
-import { MeterApi } from './xmeterapi/api';
+import { MeterApi } from "./xmeterapi/api";
 
-const appPort = parseInt(process.env.PORT || '8080');
-const app = new App();
-const meterApi = new MeterApi(process.env.XMETER_USERNAME, process.env.XMETER_PASSWORD, process.env.XMETER_HOST);
+import './controllers/countryController';
+import './controllers/proxyController';
 
-const scrappers = [
-    require('./scrappers/GatherProxyScrapper').GatherProxyScrapper,
-    require('./scrappers/GatherProxySocksScrapper').GatherProxySocksScrapper,
-    require('./scrappers/FreeProxyListScrapper').FreeProxyListScrapper
-].map(scrapper => new scrapper());
+const {
+    XMETER_USERNAME,
+    XMETER_PASSWORD,
+    XMETER_HOST,
+    PORT,
+    GRAB_TIMEOUT,
+    CHECK_TIMEOUT
+} = process.env;
 
-const uncheckedProxyGrabber = new UncheckedProxyGrabber({ scrappers: scrappers });
-const proxyChecker = new ProxyChecker(meterApi);
+const app = express();
 
-app.listen(appPort).then(async () => {
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(methodOverride());
+app.use(cors());
+app.use(expressInfluxMetrics({
+    batchSize: 10,
+    logger: logger,
+    influxClient: influx
+}));
+
+RegisterRoutes(app);
+
+app.use(
+    (err: any, req: express.Request, res: express.Response, next: Function) => {
+        const { status } = err;
+
+        res.status(status).json(err);
+    }
+);
+
+app.listen(parseInt(PORT || '8080')).on('listening', async () => {
     try {
         await sequelize.sync();
-        logger.debug(`DB connected`);
     } catch (e) {
-        logger.debug(`DB failed to connect. Reason: ${e}`);
+        logger.error(`DB failed to connect. Reason: ${e}`);
         process.exit(1);
     }
+
+    const proxyChecker = new ProxyChecker(new MeterApi(XMETER_USERNAME, XMETER_PASSWORD, XMETER_HOST));
+    const uncheckedProxyGrabber = new UncheckedProxyGrabber(new FreeProxyListScrapper(), new GatherProxyScrapper(), new GatherProxySocksScrapper());
 
     try {
         await uncheckedProxyGrabber.populate();
         await proxyChecker.checkProxies();
     } catch (e) {
-        if (e.message) {
-            logger.error(e.message);
-        } else {
-            logger.error(JSON.stringify(e));
-        }
+        logger.error(e.message);
     }
 
-    Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(process.env.GRAB_TIMEOUT).asMilliseconds());
-    Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(process.env.CHECK_TIMEOUT).asMilliseconds());
-}, () => {
-    process.exit();
+    Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(GRAB_TIMEOUT).asMilliseconds());
+    Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(CHECK_TIMEOUT).asMilliseconds());
 });

@@ -6,35 +6,33 @@ import * as cheerio from 'cheerio';
 
 artoo.bootstrap(cheerio);
 
-const noLog = () => { };
-
-class GatherProxyScrapper implements IScrapper {
-    public async scrape() : Promise<Array<IProxy>> {
-        const phantomInstance = await phantom.create([], { logger: { info: noLog, warn: noLog, error: noLog, debug: noLog } });
+export default class GatherProxyScrapper implements IScrapper {
+    public async scrape(): Promise<Array<IProxy>> {
+        const phantomInstance = await phantom.create([], { logLevel: 'error' });
         const page = await phantomInstance.createPage();
-
         const status = await page.open(this.getProviderUrl());
 
-        if (status !== 'success') {
-            throw new Error('Failed to load the page');
+        let results = [];
+
+        if (status === 'success') {
+            const content = await page.property('content');
+            const $ = cheerio.load(content);
+
+            results = $('#tblproxy tr')
+                .scrape(this.scrapeParams)
+                .splice(2);
         }
 
-        let content = await page.property('content');
-        let $ = cheerio.load(content);
-
-        let result = $('#tblproxy tr')
-            .scrape(this.scrapeParams)
-            .splice(2);
-
         await phantomInstance.exit();
-        return result;
+
+        return results;
     }
 
-    public getProviderUrl() : string {
+    public getProviderUrl(): string {
         return 'http://www.gatherproxy.com/ru';
     }
 
-    protected get scrapeParams() : object {
+    protected get scrapeParams(): object {
         return {
             server: {
                 sel: 'td:nth-child(2)',
@@ -47,5 +45,3 @@ class GatherProxyScrapper implements IScrapper {
         };
     }
 }
-
-export { GatherProxyScrapper };

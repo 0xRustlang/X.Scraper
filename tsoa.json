@@ -1,0 +1,8 @@
+{
+  "routes": {
+    "basePath": "/v1",
+    "entryFile": "./src/index.ts",
+    "routesDir": "./src/routes",
+    "middleware": "express"
+  }
+}

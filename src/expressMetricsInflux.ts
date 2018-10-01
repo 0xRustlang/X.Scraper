@@ -25,7 +25,9 @@ export function expressInfluxMetrics(options: ExpressMiddlewareOptions): any {
                     )
                     .catch(
                         (reason: any) => {
-                            options.logger.warn(reason.message);
+                            const { message } = reason;
+
+                            options.logger.warn(message);
                         }
                     );
             } catch (e) {

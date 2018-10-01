@@ -1,32 +1,28 @@
 import { MeterApi } from "./xmeterapi/api";
 import { proxiesToXMeter, proxyNodesToProxies } from './utils';
-import { IProxy } from "./interfaces/IProxy";
 import * as _ from 'lodash';
 import { Proxy } from "./models/Proxy";
-import { logger } from "./logger";
+import logger from "./logger";
 import { sequelize } from "./Sequelize";
+import influxClient from "./influxClient"
 
-class ProxyChecker {
-    private meterApi : MeterApi;
+export default class ProxyChecker {
+    private meterApi: MeterApi;
 
-    constructor(meterApi : MeterApi) {
+    constructor(meterApi: MeterApi) {
         this.meterApi = meterApi;
     }
 
-    public async checkProxies() : Promise<void> {
-        let proxiesToCheck = await Proxy
-            .scope('check')
-            .findAll({
-                attributes: ["id", "server", "port", "isoCode", "country", "checkedTimes", "lastChecked", "createdAt", "updatedAt"]
-            });
+    public async checkProxies(): Promise<void> {
+        let proxyServers = await Proxy.scope('check').findAll();
 
-        if (!_.size(proxiesToCheck)) {
+        if (!_.size(proxyServers)) {
             return;
         }
 
-        logger.debug(`Sending ${_.size(proxiesToCheck)} to XMeter`);
+        logger.debug(`Sending ${_.size(proxyServers)} to XMeter`);
 
-        let xmeterRequest = proxiesToXMeter(proxiesToCheck);
+        let xmeterRequest = proxiesToXMeter(proxyServers);
         let xmeterResult = await this.meterApi.checkReliability(xmeterRequest);
 
         let checkedProxies = proxyNodesToProxies(xmeterResult.body);
@@ -34,20 +30,17 @@ class ProxyChecker {
 
         try {
             let promises = [];
-            let counter = 0;
+            let aliveCounter = 0;
 
-            _.each(checkedProxies, (checkedProxy) => {
-                if (ProxyChecker.isProxyAlive(checkedProxy)) {
-                    counter++;
-                    let proxyModel = _.find(proxiesToCheck, { server: checkedProxy.server, port: checkedProxy.port });
-                    checkedProxy.checkedTimes = proxyModel.checkedTimes + 1;
+            _.each(checkedProxies, checkedProxy => {
+                if (checkedProxy.lossRatio !== 1) {
+                    const proxy = _.find(proxyServers, { server: checkedProxy.server, port: checkedProxy.port });
 
-                    /**
-                     * Update checked time
-                     */
-                    promises.push(
-                        proxyModel.updateAttributes(checkedProxy, { transaction })
-                    );
+                    checkedProxy.checkedTimes = proxy.checkedTimes + 1;
+
+                    promises.push(proxy.updateAttributes(checkedProxy, { transaction }));
+
+                    ++aliveCounter;
                 } else {
                     promises.push(
                         Proxy.destroy({
@@ -61,18 +54,37 @@ class ProxyChecker {
                 }
             });
 
-            logger.debug(`Checked ${_.size(checkedProxies)} proxies. Alive: ${counter}`);
+            logger.debug(`Checked ${_.size(checkedProxies)} proxies. Alive: ${aliveCounter}`);
+
             await Promise.all(promises);
             await transaction.commit();
         } catch (e) {
             await transaction.rollback();
             logger.error(`Rollback. Reason: ${e}`);
         }
+
+        await this.flushMetrics();
     }
 
-    private static isProxyAlive(proxy : IProxy) : boolean {
-        return proxy.lossRatio !== 1;
+    private async flushMetrics(): Promise<void> {
+        const proxyCount = await Proxy.count();
+        const reliableProxyCount = await Proxy.scope('checked').count();
+
+        const measurement = {
+            timestamp: new Date(),
+            fields: {
+                reliable: reliableProxyCount,
+                all: proxyCount
+            },
+        };
+
+        influxClient.writeMeasurement('proxy', [measurement])
+            .catch(
+                (reason: any) => {
+                    const { message } = reason;
+
+                    logger.warn(message);
+                }
+            );
     }
 }
-
-export { ProxyChecker };
