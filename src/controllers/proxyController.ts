@@ -8,8 +8,8 @@ export class ProxyController extends Controller {
     public async getProxy(
         @Query() offset: number = 0,
         @Query() limit: number = 150,
+        @Query() reliable: number = 2,
         @Query() country?: string,
-        @Query() reliable?: number,
         @Query() protocol?: string
     ): Promise<ProxyResponse[]> {
         try {
