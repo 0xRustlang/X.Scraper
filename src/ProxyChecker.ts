@@ -67,14 +67,12 @@ export default class ProxyChecker {
     }
 
     private async flushMetrics(): Promise<void> {
-        const proxyCount = await Proxy.count();
         const reliableProxyCount = await Proxy.scope('checked').count();
 
         const measurement = {
             timestamp: new Date(),
             fields: {
-                reliable: reliableProxyCount,
-                all: proxyCount
+                reliable: reliableProxyCount
             },
         };
 
