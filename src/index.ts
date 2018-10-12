@@ -14,9 +14,10 @@ import UncheckedProxyGrabber from "./UncheckedProxyGrabber";
 import GatherProxyScrapper from "./scrappers/GatherProxyScrapper";
 import GatherProxySocksScrapper from "./scrappers/GatherProxySocksScrapper";
 import FreeProxyListScrapper from "./scrappers/FreeProxyListScrapper";
+import expressInfluxMetrics from "./expressMetricsInflux";
+import expressUserAgent from "./expressUserAgent";
 
 import { RegisterRoutes } from './routes/routes';
-import { expressInfluxMetrics } from "./expressMetricsInflux";
 import { sequelize } from "./Sequelize";
 import { MeterApi } from "./xmeterapi/api";
 
@@ -38,6 +39,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
 app.use(cors());
+app.use(expressUserAgent());
 app.use(expressInfluxMetrics({
     batchSize: 10,
     logger: logger,

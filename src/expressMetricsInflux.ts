@@ -9,7 +9,7 @@ interface ExpressMiddlewareOptions {
     logger: winston.Logger;
 }
 
-export function expressInfluxMetrics(options: ExpressMiddlewareOptions): any {
+export default function expressInfluxMetrics(options: ExpressMiddlewareOptions): any {
     let eventEmitter = new EventEmitter();
     let points: Array<IPoint> = [];
 
@@ -39,7 +39,8 @@ export function expressInfluxMetrics(options: ExpressMiddlewareOptions): any {
     });
 
     return (request: express.Request, response: express.Response, next: any) => {
-        let requestStartedAt = Date.now();
+        const requestStartedAt = Date.now();
+        const browserName = request.userAgent.getBrowser().name;
 
         let makePoint = () => {
             let responseTime = Date.now() - requestStartedAt;
@@ -47,13 +48,14 @@ export function expressInfluxMetrics(options: ExpressMiddlewareOptions): any {
             points.push({
                 timestamp: new Date(),
                 tags: {
-                    path   : request.path,
-                    host   : request.hostname,
-                    verb   : request.method,
-                    status : response.statusCode.toString(),
+                    path: request.path,
+                    host: request.hostname,
+                    verb: request.method,
+                    status: response.statusCode.toString(),
                 },
                 fields: {
                     responseTime: responseTime,
+                    browserName: browserName
                 },
             });
 

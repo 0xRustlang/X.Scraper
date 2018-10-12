@@ -9,9 +9,7 @@
     "skipLibCheck": true
   },
   "files": [
-    "./node_modules/@types/redis/index.d.ts",
-    "./node_modules/@types/express/index.d.ts",
-    "./node_modules/@types/node/index.d.ts"
+    "src/custom.d.ts"
   ],
   "include": [
     "src/**/*.ts"
