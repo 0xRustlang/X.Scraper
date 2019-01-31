@@ -55,7 +55,8 @@ export default function expressInfluxMetrics(options: ExpressMiddlewareOptions):
                 },
                 fields: {
                     responseTime: responseTime,
-                    browserName: browserName || 'Unknown'
+                    browserName: browserName || 'Unknown',
+                    ip: request.ip
                 },
             });
 
