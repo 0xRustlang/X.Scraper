@@ -39,7 +39,7 @@ export default class UncheckedProxyGrabber {
         }
     }
 
-    private static mapScrappers(scrappers : Array<IScrapper>): Array<Promise<Array<IProxy>>> {
+    private static mapScrappers(scrappers: Array<IScrapper>): Array<Promise<Array<IProxy>>> {
         return _.map(scrappers, scrapper => scrapper.scrape());
     }
 }

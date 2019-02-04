@@ -22,19 +22,19 @@ let defaultBasePath = 'http://localhost/v1';
 
 /* tslint:disable:no-unused-variable */
 let primitives = [
-    "string",
-    "boolean",
-    "double",
-    "integer",
-    "long",
-    "float",
-    "number",
-    "any"
-];
+                    "string",
+                    "boolean",
+                    "double",
+                    "integer",
+                    "long",
+                    "float",
+                    "number",
+                    "any"
+                 ];
 
 class ObjectSerializer {
 
-    public static findCorrectType(data : any, expectedType : string) {
+    public static findCorrectType(data: any, expectedType: string) {
         if (data == undefined) {
             return expectedType;
         } else if (primitives.indexOf(expectedType.toLowerCase()) !== -1) {
@@ -64,15 +64,15 @@ class ObjectSerializer {
         }
     }
 
-    public static serialize(data : any, type : string) {
+    public static serialize(data: any, type: string) {
         if (data == undefined) {
             return data;
         } else if (primitives.indexOf(type.toLowerCase()) !== -1) {
             return data;
         } else if (type.lastIndexOf("Array<", 0) === 0) { // string.startsWith pre es6
-            let subType : string = type.replace("Array<", ""); // Array<Type> => Type>
+            let subType: string = type.replace("Array<", ""); // Array<Type> => Type>
             subType = subType.substring(0, subType.length - 1); // Type> => Type
-            let transformedData : any[] = [];
+            let transformedData: any[] = [];
             for (let index in data) {
                 let date = data[index];
                 transformedData.push(ObjectSerializer.serialize(date, subType));
@@ -90,7 +90,7 @@ class ObjectSerializer {
 
             // get the map for the correct type.
             let attributeTypes = typeMap[type].getAttributeTypeMap();
-            let instance : { [index : string] : any } = {};
+            let instance: {[index: string]: any} = {};
             for (let index in attributeTypes) {
                 let attributeType = attributeTypes[index];
                 instance[attributeType.baseName] = ObjectSerializer.serialize(data[attributeType.name], attributeType.type);
@@ -99,7 +99,7 @@ class ObjectSerializer {
         }
     }
 
-    public static deserialize(data : any, type : string) {
+    public static deserialize(data: any, type: string) {
         // polymorphism may change the actual type.
         type = ObjectSerializer.findCorrectType(data, type);
         if (data == undefined) {
@@ -107,9 +107,9 @@ class ObjectSerializer {
         } else if (primitives.indexOf(type.toLowerCase()) !== -1) {
             return data;
         } else if (type.lastIndexOf("Array<", 0) === 0) { // string.startsWith pre es6
-            let subType : string = type.replace("Array<", ""); // Array<Type> => Type>
+            let subType: string = type.replace("Array<", ""); // Array<Type> => Type>
             subType = subType.substring(0, subType.length - 1); // Type> => Type
-            let transformedData : any[] = [];
+            let transformedData: any[] = [];
             for (let index in data) {
                 let date = data[index];
                 transformedData.push(ObjectSerializer.deserialize(date, subType));
@@ -137,16 +137,16 @@ class ObjectSerializer {
 }
 
 export class ModelError {
-    'message' : string;
+    'message': string;
 
     static discriminator = undefined;
 
-    static attributeTypeMap : Array<{ name : string, baseName : string, type : string }> = [
+    static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
             "name": "message",
             "baseName": "message",
             "type": "string"
-        }];
+        }    ];
 
     static getAttributeTypeMap() {
         return ModelError.attributeTypeMap;
@@ -157,7 +157,7 @@ export class Principal {
 
     static discriminator = undefined;
 
-    static attributeTypeMap : Array<{ name : string, baseName : string, type : string }> = [
+    static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
     ];
 
     static getAttributeTypeMap() {
@@ -166,12 +166,12 @@ export class Principal {
 }
 
 export class Proxy {
-    'server' : string;
-    'port' : string;
+    'server': string;
+    'port': string;
 
     static discriminator = undefined;
 
-    static attributeTypeMap : Array<{ name : string, baseName : string, type : string }> = [
+    static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
             "name": "server",
             "baseName": "server",
@@ -181,7 +181,7 @@ export class Proxy {
             "name": "port",
             "baseName": "port",
             "type": "string"
-        }];
+        }    ];
 
     static getAttributeTypeMap() {
         return Proxy.attributeTypeMap;
@@ -193,11 +193,13 @@ export class ProxyNode {
     'port'?: string;
     'isoCode'?: string;
     'country'?: string;
-    'transport'?: Array<ProxyNodeTransport>;
+    'pingTimeMs'?: number;
+    'lossRatio'?: number;
+    'protocol'?: string;
 
     static discriminator = undefined;
 
-    static attributeTypeMap : Array<{ name : string, baseName : string, type : string }> = [
+    static attributeTypeMap: Array<{name: string, baseName: string, type: string}> = [
         {
             "name": "server",
             "baseName": "server",
@@ -219,25 +221,6 @@ export class ProxyNode {
             "type": "string"
         },
         {
-            "name": "transport",
-            "baseName": "transport",
-            "type": "Array<ProxyNodeTransport>"
-        }];
-
-    static getAttributeTypeMap() {
-        return ProxyNode.attributeTypeMap;
-    }
-}
-
-export class ProxyNodeTransport {
-    'pingTimeMs' : number;
-    'lossRatio' : number;
-    'protocol' : string;
-
-    static discriminator = undefined;
-
-    static attributeTypeMap : Array<{ name : string, baseName : string, type : string }> = [
-        {
             "name": "pingTimeMs",
             "baseName": "ping_time_ms",
             "type": "number"
@@ -251,37 +234,36 @@ export class ProxyNodeTransport {
             "name": "protocol",
             "baseName": "protocol",
             "type": "string"
-        }];
+        }    ];
 
     static getAttributeTypeMap() {
-        return ProxyNodeTransport.attributeTypeMap;
+        return ProxyNode.attributeTypeMap;
     }
 }
 
 
-let enumsMap : { [index : string] : any } = {
+let enumsMap: {[index: string]: any} = {
 }
 
-let typeMap : { [index : string] : any } = {
+let typeMap: {[index: string]: any} = {
     "ModelError": ModelError,
     "Principal": Principal,
     "Proxy": Proxy,
     "ProxyNode": ProxyNode,
-    "ProxyNodeTransport": ProxyNodeTransport,
 }
 
 export interface Authentication {
     /**
     * Apply authentication settings to header and query params.
     */
-    applyToRequest(requestOptions : localVarRequest.Options) : void;
+    applyToRequest(requestOptions: localVarRequest.Options): void;
 }
 
 export class HttpBasicAuth implements Authentication {
-    public username : string = '';
-    public password : string = '';
+    public username: string = '';
+    public password: string = '';
 
-    applyToRequest(requestOptions : localVarRequest.Options) : void {
+    applyToRequest(requestOptions: localVarRequest.Options): void {
         requestOptions.auth = {
             username: this.username, password: this.password
         }
@@ -289,12 +271,12 @@ export class HttpBasicAuth implements Authentication {
 }
 
 export class ApiKeyAuth implements Authentication {
-    public apiKey : string = '';
+    public apiKey: string = '';
 
-    constructor(private location : string, private paramName : string) {
+    constructor(private location: string, private paramName: string) {
     }
 
-    applyToRequest(requestOptions : localVarRequest.Options) : void {
+    applyToRequest(requestOptions: localVarRequest.Options): void {
         if (this.location == "query") {
             (<any>requestOptions.qs)[this.paramName] = this.apiKey;
         } else if (this.location == "header" && requestOptions && requestOptions.headers) {
@@ -304,9 +286,9 @@ export class ApiKeyAuth implements Authentication {
 }
 
 export class OAuth implements Authentication {
-    public accessToken : string = '';
+    public accessToken: string = '';
 
-    applyToRequest(requestOptions : localVarRequest.Options) : void {
+    applyToRequest(requestOptions: localVarRequest.Options): void {
         if (requestOptions && requestOptions.headers) {
             requestOptions.headers["Authorization"] = "Bearer " + this.accessToken;
         }
@@ -314,10 +296,10 @@ export class OAuth implements Authentication {
 }
 
 export class VoidAuth implements Authentication {
-    public username : string = '';
-    public password : string = '';
+    public username: string = '';
+    public password: string = '';
 
-    applyToRequest(_ : localVarRequest.Options) : void {
+    applyToRequest(_: localVarRequest.Options): void {
         // Do nothing
     }
 }
@@ -336,8 +318,8 @@ export class MeterApi {
     }
 
     constructor(basePath?: string);
-    constructor(username : string, password : string, basePath?: string);
-    constructor(basePathOrUsername : string, password?: string, basePath?: string) {
+    constructor(username: string, password: string, basePath?: string);
+    constructor(basePathOrUsername: string, password?: string, basePath?: string) {
         if (password) {
             this.username = basePathOrUsername;
             this.password = password
@@ -351,11 +333,11 @@ export class MeterApi {
         }
     }
 
-    set useQuerystring(value : boolean) {
+    set useQuerystring(value: boolean) {
         this._useQuerystring = value;
     }
 
-    set basePath(basePath : string) {
+    set basePath(basePath: string) {
         this._basePath = basePath;
     }
 
@@ -363,18 +345,18 @@ export class MeterApi {
         return this._basePath;
     }
 
-    public setDefaultAuthentication(auth : Authentication) {
-        this.authentications.default = auth;
+    public setDefaultAuthentication(auth: Authentication) {
+	this.authentications.default = auth;
     }
 
-    public setApiKey(key : MeterApiApiKeys, value : string) {
+    public setApiKey(key: MeterApiApiKeys, value: string) {
         (this.authentications as any)[MeterApiApiKeys[key]].apiKey = value;
     }
-    set username(username : string) {
+    set username(username: string) {
         this.authentications.basicAuth.username = username;
     }
 
-    set password(password : string) {
+    set password(password: string) {
         this.authentications.basicAuth.password = password;
     }
     /**
@@ -382,16 +364,16 @@ export class MeterApi {
      * @summary High-speed proxy checking
      * @param proxy 
      */
-    public checkReliability(proxy?: Array<Proxy>) : Promise<{ response : http.ClientResponse; body : Array<ProxyNode>; }> {
+    public checkReliability (proxy?: Array<Proxy>) : Promise<{ response: http.ClientResponse; body: Array<ProxyNode>;  }> {
         const localVarPath = this.basePath + '/reliability';
-        let localVarQueryParameters : any = {};
-        let localVarHeaderParams : any = (<any>Object).assign({}, this.defaultHeaders);
-        let localVarFormParams : any = {};
+        let localVarQueryParameters: any = {};
+        let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders);
+        let localVarFormParams: any = {};
 
 
         let localVarUseFormData = false;
 
-        let localVarRequestOptions : localVarRequest.Options = {
+        let localVarRequestOptions: localVarRequest.Options = {
             method: 'POST',
             qs: localVarQueryParameters,
             headers: localVarHeaderParams,
@@ -412,7 +394,7 @@ export class MeterApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response : http.ClientResponse; body : Array<ProxyNode>; }>((resolve, reject) => {
+        return new Promise<{ response: http.ClientResponse; body: Array<ProxyNode>;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);

@@ -1,7 +1,7 @@
 import logger from "./logger";
 
 export default class Scheduler {
-    public static schedule(fn : () => Promise<any>, interval : number) {
+    public static schedule(fn: () => Promise<any>, interval : number) {
         let executor = async function () {
             try {
                 await fn();

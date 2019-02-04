@@ -8,7 +8,5 @@ export const sequelize = new Sequelize({
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
     modelPaths: [__dirname + '/models'],
-    logging: message => {
-        logger.debug(message)
-    }
+    logging: () => {}
 });

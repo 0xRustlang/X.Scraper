@@ -55,7 +55,7 @@ function defaultMomentObject(): Moment {
             }
         }
     },
-    protocol: (protocol : string | Array<string>) => {
+    protocol: (protocol: string | Array<string>) => {
         return {
             where: {
                 protocol: protocol

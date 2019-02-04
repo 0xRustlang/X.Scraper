@@ -30,10 +30,18 @@ export default class ProxyChecker {
 
         try {
             let promises = [];
+            let proxyLossRatio = new Map();
             let aliveCounter = 0;
 
             _.each(checkedProxies, checkedProxy => {
-                if (checkedProxy.lossRatio !== 1) {
+                const key = `${checkedProxy.server}:${checkedProxy.port}`;
+
+                if (checkedProxy.lossRatio === 1) {
+                    const currentLossRatio = _.isNil(proxyLossRatio.get(key))
+                        ? 1 : proxyLossRatio.get(key);
+
+                    proxyLossRatio.set(key, Math.min(currentLossRatio, 1));
+                } else {
                     const proxy = _.find(proxyServers, { server: checkedProxy.server, port: checkedProxy.port });
 
                     checkedProxy.checkedTimes = proxy.checkedTimes + 1;
@@ -41,20 +49,29 @@ export default class ProxyChecker {
                     promises.push(proxy.updateAttributes(checkedProxy, { transaction }));
 
                     ++aliveCounter;
-                } else {
-                    promises.push(
-                        Proxy.destroy({
-                            where: {
-                                server: checkedProxy.server,
-                                port: checkedProxy.port
-                            },
-                            transaction
-                        })
-                    )
+
+                    proxyLossRatio.set(key, checkedProxy.lossRatio);
                 }
             });
 
-            logger.debug(`Checked ${_.size(checkedProxies)} proxies. Alive: ${aliveCounter}`);
+            proxyLossRatio.forEach(
+                (lossRatio: Number, address: String) => {
+                    if (lossRatio === 1) {
+                        let [server, port] = address.split(':');
+
+                        promises.push(
+                            Proxy.destroy({
+                                where: {
+                                    server: server,
+                                    port: port
+                                },
+                                transaction
+                            })
+                        )
+                    }
+                });
+
+            logger.debug(`Checked ${_.size(proxyServers)} proxies. Alive: ${aliveCounter}`);
 
             await Promise.all(promises);
             await transaction.commit();
