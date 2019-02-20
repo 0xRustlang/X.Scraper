@@ -9,7 +9,7 @@ export interface IProxy {
     pingTimeMs?: number;
     lossRatio?: number;
     protocol?: ProtocolEnum;
-    lastChecked: Moment | Date;
+    lastChecked?: Moment | Date;
 }
 
 export enum ProtocolEnum {

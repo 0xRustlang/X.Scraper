@@ -1,3 +1,5 @@
+import SpysScrapper from "./scrappers/SpysScrapper";
+
 require('dotenv').config({ path: '.env' });
 
 import * as express from 'express';
@@ -65,7 +67,12 @@ app.listen(parseInt(PORT || '8080')).on('listening', async () => {
     }
 
     const proxyChecker = new ProxyChecker(new MeterApi(XMETER_USERNAME, XMETER_PASSWORD, XMETER_HOST));
-    const uncheckedProxyGrabber = new UncheckedProxyGrabber(new FreeProxyListScrapper(), new GatherProxyScrapper(), new GatherProxySocksScrapper());
+    const uncheckedProxyGrabber = new UncheckedProxyGrabber(
+        new FreeProxyListScrapper(),
+        new GatherProxyScrapper(),
+        new GatherProxySocksScrapper(),
+        new SpysScrapper()
+    );
 
     try {
         await uncheckedProxyGrabber.populate();
