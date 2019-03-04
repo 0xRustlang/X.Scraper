@@ -1,5 +1,3 @@
-import SpysScrapper from "./scrappers/SpysScrapper";
-
 require('dotenv').config({ path: '.env' });
 
 import * as express from 'express';
@@ -16,6 +14,8 @@ import UncheckedProxyGrabber from "./UncheckedProxyGrabber";
 import GatherProxyScrapper from "./scrappers/GatherProxyScrapper";
 import GatherProxySocksScrapper from "./scrappers/GatherProxySocksScrapper";
 import FreeProxyListScrapper from "./scrappers/FreeProxyListScrapper";
+import SpysSOCKSScrapper from "./scrappers/SpysSOCKSScrapper";
+import SpysHTTPScrapper from "./scrappers/SpysHTTPScrapper";
 import expressInfluxMetrics from "./expressMetricsInflux";
 import expressUserAgent from "./expressUserAgent";
 
@@ -71,7 +71,8 @@ app.listen(parseInt(PORT || '8080')).on('listening', async () => {
         new FreeProxyListScrapper(),
         new GatherProxyScrapper(),
         new GatherProxySocksScrapper(),
-        new SpysScrapper()
+        new SpysSOCKSScrapper(),
+        new SpysHTTPScrapper()
     );
 
     try {
