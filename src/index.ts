@@ -70,17 +70,8 @@ app.listen(parseInt(PORT || '8080')).on('listening', async () => {
     const uncheckedProxyGrabber = new UncheckedProxyGrabber(
         new FreeProxyListScrapper(),
         new GatherProxyScrapper(),
-        new GatherProxySocksScrapper(),
-        new SpysSOCKSScrapper(),
-        new SpysHTTPScrapper()
+        new GatherProxySocksScrapper()
     );
-
-    try {
-        await uncheckedProxyGrabber.populate();
-        await proxyChecker.checkProxies();
-    } catch (e) {
-        logger.error(e.message);
-    }
 
     Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(GRAB_TIMEOUT).asMilliseconds());
     Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(CHECK_TIMEOUT).asMilliseconds());

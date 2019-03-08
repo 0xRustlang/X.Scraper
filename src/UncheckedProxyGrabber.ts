@@ -18,6 +18,7 @@ export default class UncheckedProxyGrabber {
             return _(data).flatten().uniqBy('server').value();
         } catch (e) {
             logger.error(e);
+            logger.error(e.stack);
             return [];
         }
     }
@@ -25,21 +26,22 @@ export default class UncheckedProxyGrabber {
     public async populate() {
         logger.debug('Started population of unchecked proxies');
 
-        try {
-            const grabbedProxies = await this.grab();
-            const existing = await Proxy.findAll();
-            const newProxies = _.differenceBy(grabbedProxies, existing, (value) => `${value.server}:${value.port}`);
+        const grabbedProxies = await this.grab();
+        const existing = await Proxy.findAll();
+        const newProxies = _.differenceBy(grabbedProxies, existing, (value) => `${value.server}:${value.port}`);
 
-            if (_.size(newProxies)) {
-                logger.debug(`Adding ${_.size(newProxies)} new proxies`);
-                await Proxy.bulkCreate(newProxies, { validate: true, fields: ['server', 'port'] });
-            }
-        } catch (e) {
-            logger.error(e);
+        if (_.size(newProxies)) {
+            logger.debug(`Adding ${_.size(newProxies)} new proxies`);
+            await Proxy.bulkCreate(newProxies, { validate: true, fields: ['server', 'port'] });
         }
     }
 
     private static mapScrappers(scrappers: Array<IScrapper>): Array<Promise<Array<IProxy>>> {
-        return _.map(scrappers, scrapper => scrapper.scrape());
+        return scrappers.map(scrapper => scrapper.scrape().catch(e => {
+            logger.error(e);
+            logger.error(e.stack);
+
+            return []
+        }));
     }
 }

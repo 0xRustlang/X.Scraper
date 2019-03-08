@@ -7,11 +7,12 @@ export default class Scheduler {
                 await fn();
             } catch (e) {
                 logger.error(e.message);
+                logger.error(e.stack);
             }
 
             setTimeout(executor, interval);
         };
 
-        setTimeout(executor, interval);
+        executor();
     }
 }
