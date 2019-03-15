@@ -2,7 +2,6 @@ require('dotenv').config({ path: '.env' });
 
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import * as cors from "cors";
 import * as methodOverride from 'method-override';
 import * as moment from 'moment';
 
@@ -14,8 +13,6 @@ import UncheckedProxyGrabber from "./UncheckedProxyGrabber";
 import GatherProxyScrapper from "./scrappers/GatherProxyScrapper";
 import GatherProxySocksScrapper from "./scrappers/GatherProxySocksScrapper";
 import FreeProxyListScrapper from "./scrappers/FreeProxyListScrapper";
-import SpysSOCKSScrapper from "./scrappers/SpysSOCKSScrapper";
-import SpysHTTPScrapper from "./scrappers/SpysHTTPScrapper";
 import expressInfluxMetrics from "./expressMetricsInflux";
 import expressUserAgent from "./expressUserAgent";
 
@@ -40,7 +37,6 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(methodOverride());
-app.use(cors());
 app.use(expressUserAgent());
 app.use(expressInfluxMetrics({
     batchSize: 10,
