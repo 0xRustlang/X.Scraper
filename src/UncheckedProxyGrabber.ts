@@ -18,7 +18,10 @@ export default class UncheckedProxyGrabber {
             return _(data).flatten().uniqBy('server').value();
         } catch (e) {
             logger.error(e);
-            logger.error(e.stack);
+            if (e.stack) {
+                logger.error(e.stack);
+            }
+
             return [];
         }
     }
@@ -37,11 +40,19 @@ export default class UncheckedProxyGrabber {
     }
 
     private static mapScrappers(scrappers: Array<IScrapper>): Array<Promise<Array<IProxy>>> {
-        return scrappers.map(scrapper => scrapper.scrape().catch(e => {
+        return scrappers.map(scrapper => Promise.race([scrapper.scrape(), UncheckedProxyGrabber.createTimeout()]).catch(e => {
             logger.error(e);
-            logger.error(e.stack);
+            if (e.stack) {
+                logger.error(e.stack);
+            }
 
             return []
         }));
+    }
+
+    private static createTimeout(): Promise<any> {
+        return new Promise((_, reject) => {
+            setTimeout(reject, 40000, 'Timeout');
+        });
     }
 }

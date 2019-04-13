@@ -1,35 +1,19 @@
-import { Get, Route, Query, Controller } from 'tsoa';
-import * as _ from 'lodash';
-import { Proxy } from "../models/Proxy";
+import { Controller, Get, Route } from "tsoa";
 import { IProxyResponse } from "../interfaces/IProxyResponse";
+import * as _ from "lodash";
+import { Proxy } from "../models/Proxy";
 
-@Route('proxy')
-export class ProxyController extends Controller {
+@Route('relevant')
+export class RelevantController extends Controller {
     @Get('/')
-    public async getProxy(
-        @Query() offset: number = 0,
-        @Query() limit: number = 150,
-        @Query() protocol?: "SOCKS5" | "HTTPS" | "HTTP"
-    ): Promise<IProxyResponse[]> {
+    public async getRelevant(): Promise<IProxyResponse[]> {
         try {
-            let scope: any = [];
-
-            if (!_.isUndefined(protocol)) {
-                scope.push({
-                    method: ['protocol', protocol]
-                });
-            }
-
             const proxyServers = await Proxy
                 .scope(
-                    'free',
-                    ...scope
+                    'premium'
                 )
                 .findAll({
-                    offset: offset,
-                    limit: limit,
                     order: [
-                        ['createdAt', 'DESC'],
                         ['pingTimeMs', 'ASC']
                     ]
                 });
@@ -50,4 +34,3 @@ export class ProxyController extends Controller {
         }
     }
 }
-

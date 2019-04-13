@@ -1,5 +1,5 @@
 import { MeterApi } from "./xmeterapi/api";
-import { proxiesToXMeter, proxyNodesToProxies } from './utils';
+import { proxiesToXMeter, proxyNodesToProxies, toUniqueProxies } from './utils';
 import * as _ from 'lodash';
 import { Proxy } from "./models/Proxy";
 import logger from "./logger";
@@ -13,6 +13,17 @@ export default class ProxyChecker {
         this.meterApi = meterApi;
     }
 
+    public async checkDeadProxies(): Promise<void> {
+        let proxyServers = await Proxy.scope({ method: ['check', true] }).findAll();
+
+        if (!_.size(proxyServers)) {
+            return;
+        }
+
+        logger.debug(`Sending ${_.size(proxyServers)} dead to XMeter`);
+        await this.checkInternal(proxyServers);
+    }
+
     public async checkProxies(): Promise<void> {
         let proxyServers = await Proxy.scope('check').findAll();
 
@@ -20,58 +31,45 @@ export default class ProxyChecker {
             return;
         }
 
-        logger.debug(`Sending ${_.size(proxyServers)} to XMeter`);
+        logger.debug(`Sending ${_.size(proxyServers)} alive to XMeter`);
+        await this.checkInternal(proxyServers);
+        await this.flushMetrics();
+    }
 
-        let xmeterRequest = proxiesToXMeter(proxyServers);
-        let xmeterResult = await this.meterApi.checkReliability(xmeterRequest);
+    private async checkInternal(proxyServers: Array<Proxy>): Promise<void> {
+        const batches = await Promise.all(_.chunk(proxyServers, 1000).map(proxiesToXMeter).map(v => this.meterApi.checkReliability(v)));
+        const checkedProxies = proxyNodesToProxies(_.flatMap(batches, 'body'));
+        const transaction = await sequelize.transaction();
+        const proxies = toUniqueProxies(checkedProxies);
 
-        let checkedProxies = proxyNodesToProxies(xmeterResult.body);
-        let transaction = await sequelize.transaction();
 
         try {
             let promises = [];
-            let proxyLossRatio = new Map();
             let aliveCounter = 0;
+            let deletedCounter = 0;
 
-            _.each(checkedProxies, checkedProxy => {
-                const key = `${checkedProxy.server}:${checkedProxy.port}`;
+            proxies.forEach(checkedProxy => {
+                const proxy = _.find(proxyServers, { server: checkedProxy.server, port: checkedProxy.port });
 
-                if (checkedProxy.lossRatio === 1) {
-                    const currentLossRatio = _.isNil(proxyLossRatio.get(key))
-                        ? 1 : proxyLossRatio.get(key);
-
-                    proxyLossRatio.set(key, Math.min(currentLossRatio, 1));
-                } else {
-                    const proxy = _.find(proxyServers, { server: checkedProxy.server, port: checkedProxy.port });
-
-                    checkedProxy.checkedTimes = proxy.checkedTimes + 1;
-
-                    promises.push(proxy.updateAttributes(checkedProxy, { transaction }));
-
+                if (checkedProxy.lossRatio < 1) {
                     ++aliveCounter;
+                    checkedProxy.passedTimes = proxy.passedTimes + 1;
+                } else if (checkedProxy.checkedTimes === 0) {
+                    promises.push(
+                        Proxy.destroy({
+                            where: { server: checkedProxy.server, port: checkedProxy.port },
+                            transaction
+                        })
+                    );
 
-                    proxyLossRatio.set(key, checkedProxy.lossRatio);
+                    deletedCounter++;
                 }
+
+                checkedProxy.checkedTimes = proxy.checkedTimes + 1;
+                promises.push(proxy.updateAttributes(checkedProxy, { transaction }));
             });
 
-            proxyLossRatio.forEach(
-                (lossRatio: Number, address: String) => {
-                    if (lossRatio === 1) {
-                        let [server, port] = address.split(':');
-
-                        promises.push(
-                            Proxy.destroy({
-                                where: {
-                                    server: server,
-                                    port: port
-                                },
-                                transaction
-                            })
-                        )
-                    }
-                });
-
-            logger.debug(`Checked ${_.size(proxyServers)} proxies. Alive: ${aliveCounter}`);
+            logger.debug(`Checked ${_.size(proxyServers)} proxies. Alive: ${aliveCounter}. Deleted: ${deletedCounter}`);
 
             await Promise.all(promises);
             await transaction.commit();
@@ -79,27 +77,26 @@ export default class ProxyChecker {
             await transaction.rollback();
             logger.error(`Rollback. Reason: ${e}`);
         }
-
-        await this.flushMetrics();
     }
 
     private async flushMetrics(): Promise<void> {
-        const reliableProxyCount = await Proxy.scope('checked').count();
+        const freeProxyCount = await Proxy.scope('free').count();
+        const premiumProxyCount = await Proxy.scope('premium', { method: ['uptime', 0.9] }).count();
+        const allProxyCount = await Proxy.count();
 
         const measurement = {
             timestamp: new Date(),
             fields: {
-                reliable: reliableProxyCount
+                freeProxyCount,
+                premiumProxyCount,
+                allProxy: allProxyCount
             },
         };
 
-        influxClient.writeMeasurement('proxy', [measurement])
-            .catch(
-                (reason: any) => {
-                    const { message } = reason;
-
-                    logger.warn(message);
-                }
-            );
+        try {
+            await influxClient.writeMeasurement('proxy', [measurement]);
+        } catch (e) {
+            logger.warn(e.message);
+        }
     }
 }

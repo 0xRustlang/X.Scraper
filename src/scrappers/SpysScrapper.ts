@@ -2,10 +2,20 @@ import { IProxy } from "../interfaces/IProxy";
 import { IScrapper } from "../interfaces/IScrapper";
 import * as phantom from 'phantom';
 import * as cheerio from 'cheerio';
+import { Proxy } from "../models/Proxy";
+import { proxyToPhantomOptions } from "../utils";
+import { Sequelize } from "sequelize-typescript";
 
 export default abstract class SpysScrapper implements IScrapper {
     public async scrape(): Promise<Array<IProxy>> {
-        const instance: phantom.PhantomJS = await phantom.create([], { logLevel: 'error' });
+        const proxyServer = await Proxy.findOne({
+            where: { lossRatio: { [Sequelize.Op.ne]: 1 } },
+            order: [Sequelize.fn('RANDOM')],
+            attributes: ['server', 'port', 'protocol']
+        });
+
+        const proxy = proxyToPhantomOptions(proxyServer);
+        const instance: phantom.PhantomJS = await phantom.create(Math.random() > 0.5 ? [] : proxy);
         const page: phantom.WebPage = await instance.createPage();
         const preflightStatus: string = await page.open(this.getProviderUrl());
 
@@ -33,7 +43,8 @@ export default abstract class SpysScrapper implements IScrapper {
         return {
             server,
             port,
-            checkedTimes: 0
+            checkedTimes: 0,
+            passedTimes: 0
         };
     }
 

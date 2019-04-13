@@ -6,10 +6,11 @@ export interface IProxy {
     isoCode?: string;
     country?: string;
     checkedTimes: number;
+    passedTimes: number;
     pingTimeMs?: number;
     lossRatio?: number;
     protocol?: ProtocolEnum;
-    lastChecked?: Moment | Date;
+    lastChecked?: Moment;
 }
 
 export enum ProtocolEnum {

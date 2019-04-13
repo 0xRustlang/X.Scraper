@@ -1,3 +1,5 @@
+import ProxyCleaner from "./ProxyCleaner";
+
 require('dotenv').config({ path: '.env' });
 
 import * as express from 'express';
@@ -12,6 +14,8 @@ import ProxyChecker from "./ProxyChecker";
 import UncheckedProxyGrabber from "./UncheckedProxyGrabber";
 import GatherProxyScrapper from "./scrappers/GatherProxyScrapper";
 import GatherProxySocksScrapper from "./scrappers/GatherProxySocksScrapper";
+import SpysHTTPScrapper from "./scrappers/SpysHTTPScrapper";
+import SpysSOCKSScrapper from "./scrappers/SpysSOCKSScrapper";
 import FreeProxyListScrapper from "./scrappers/FreeProxyListScrapper";
 import expressInfluxMetrics from "./expressMetricsInflux";
 import expressUserAgent from "./expressUserAgent";
@@ -20,7 +24,7 @@ import { RegisterRoutes } from './routes/routes';
 import { sequelize } from "./Sequelize";
 import { MeterApi } from "./xmeterapi/api";
 
-import './controllers/countryController';
+import './controllers/relevantController';
 import './controllers/proxyController';
 
 const {
@@ -64,19 +68,28 @@ app.listen(parseInt(PORT || '8080')).on('listening', async () => {
     }
 
     const proxyChecker = new ProxyChecker(new MeterApi(XMETER_USERNAME, XMETER_PASSWORD, XMETER_HOST));
+    const proxyCleaner = new ProxyCleaner();
+
     const uncheckedProxyGrabber = new UncheckedProxyGrabber(
         new FreeProxyListScrapper(),
         new GatherProxyScrapper(),
-        new GatherProxySocksScrapper()
+        new GatherProxySocksScrapper(),
+        new SpysHTTPScrapper(),
+        new SpysSOCKSScrapper()
     );
 
     try {
         await uncheckedProxyGrabber.populate();
+        await proxyCleaner.cleanProxy();
         await proxyChecker.checkProxies();
+        await proxyChecker.checkDeadProxies();
     } catch (e) {
         logger.error(e.message);
     }
 
+    logger.debug('Init success. Setting schedules');
     Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(GRAB_TIMEOUT).asMilliseconds());
     Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(CHECK_TIMEOUT).asMilliseconds());
+    Scheduler.schedule(proxyChecker.checkDeadProxies.bind(proxyChecker), moment.duration(CHECK_TIMEOUT).asMilliseconds() * 5);
+    Scheduler.schedule(proxyCleaner.cleanProxy.bind(proxyCleaner), moment.duration(CHECK_TIMEOUT).asMilliseconds() * 2);
 });

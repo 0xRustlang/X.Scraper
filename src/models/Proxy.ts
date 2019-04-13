@@ -19,6 +19,8 @@ import { IProxy, ProtocolEnum } from "../interfaces/IProxy";
 import * as moment from 'moment';
 import { momentToSQL, sqlToMoment } from "../utils";
 
+const enoughChecks = process.env.PREMIUM_CHECKS || 500;
+
 function defaultMomentObject(): Moment {
     return moment().utc().subtract(process.env.CHECK_TIMEOUT, 'minutes')
 }
@@ -27,7 +29,7 @@ function defaultMomentObject(): Moment {
     attributes: ['server', 'port']
 })
 @Scopes({
-    check: () => {
+    check: (dead: boolean = false) => {
         return {
             where: {
                 [Sequelize.Op.or]: {
@@ -35,15 +37,55 @@ function defaultMomentObject(): Moment {
                         [Sequelize.Op.lte]: momentToSQL(defaultMomentObject())
                     },
                     checkedTimes: 0
+                },
+                lossRatio: {
+                    [dead ? Sequelize.Op.eq : Sequelize.Op.ne]: 1
                 }
             }
         }
     },
-    checked: {
+    eliglibleToClean: {
         where: {
+            lossRatio: 1,
             checkedTimes: {
-                [Sequelize.Op.gte]: 2
+                [Sequelize.Op.gt]: enoughChecks
             }
+        }
+    },
+    premium() {
+        return {
+            where: {
+                lossRatio: {
+                    [Sequelize.Op.ne]: 1
+                },
+                checkedTimes: {
+                    [Sequelize.Op.gt]: enoughChecks
+                },
+                [Sequelize.Op.and]: Sequelize.literal(`"passedTimes" / "checkedTimes" >= 0.9`)
+            }
+        }
+    },
+    free() {
+        return {
+            where: {
+                lossRatio: {
+                    [Sequelize.Op.ne]: 1
+                },
+                [Sequelize.Op.or]: {
+                    passedTimes: {
+                        [Sequelize.Op.and]: {
+                            [Sequelize.Op.lt]: enoughChecks,
+                            [Sequelize.Op.gte]: 2
+                        }
+                    },
+                    [Sequelize.Op.and]: Sequelize.literal(`"passedTimes" / "checkedTimes" < 0.9`)
+                }
+            }
+        }
+    },
+    uptime: (uptime: Number, op: string = '>=') => {
+        return {
+            where: { [Sequelize.Op.and]: Sequelize.literal(`"passedTimes" / "checkedTimes" ${op} ${uptime}`) }
         }
     },
     checkedTimes: (times: Number) => {
@@ -74,6 +116,11 @@ function defaultMomentObject(): Moment {
             name: 'time_index',
             method: 'BTREE',
             fields: ['lastChecked']
+        },
+        {
+            name: 'uptime_index',
+            method: 'BTREE',
+            fields: ['checkedTimes', 'passedTimes', 'pingTimeMs']
         }
     ]
 })
@@ -137,4 +184,7 @@ export class Proxy extends Model<Proxy> implements IProxy {
     @UpdatedAt
     @Column
     updatedAt: Date;
+
+    @Column(DataType.INTEGER)
+    passedTimes: number;
 }

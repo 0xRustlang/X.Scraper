@@ -20,8 +20,9 @@ export default class SpysHTTPScrapper extends SpysScrapper {
         if (status === 'success') {
             const content = await page.property('content');
             const $$ = cheerio.load(content);
+            const data = $$('body').text().match(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}/g) || [];
 
-            return $$('body').text().match(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}/g).map(this.converter);
+            return data.map(this.converter);
         }
 
         return [];

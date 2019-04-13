@@ -364,7 +364,7 @@ export class MeterApi {
      * @summary High-speed proxy checking
      * @param proxy 
      */
-    public checkReliability (proxy?: Array<Proxy>) : Promise<{ response: http.ClientResponse; body: Array<ProxyNode>;  }> {
+    public checkReliability (proxy?: Array<Proxy>) : Promise<{ response: http.IncomingMessage; body: Array<ProxyNode>;  }> {
         const localVarPath = this.basePath + '/reliability';
         let localVarQueryParameters: any = {};
         let localVarHeaderParams: any = (<any>Object).assign({}, this.defaultHeaders);
@@ -394,7 +394,7 @@ export class MeterApi {
                 localVarRequestOptions.form = localVarFormParams;
             }
         }
-        return new Promise<{ response: http.ClientResponse; body: Array<ProxyNode>;  }>((resolve, reject) => {
+        return new Promise<{ response: http.IncomingMessage; body: Array<ProxyNode>;  }>((resolve, reject) => {
             localVarRequest(localVarRequestOptions, (error, response, body) => {
                 if (error) {
                     reject(error);
