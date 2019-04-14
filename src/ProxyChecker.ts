@@ -14,7 +14,7 @@ export default class ProxyChecker {
     }
 
     public async checkDeadProxies(): Promise<void> {
-        let proxyServers = await Proxy.scope({ method: ['check', true] }).findAll();
+        const proxyServers = await Proxy.scope('checkDead').findAll();
 
         if (!_.size(proxyServers)) {
             return;
@@ -25,7 +25,7 @@ export default class ProxyChecker {
     }
 
     public async checkProxies(): Promise<void> {
-        let proxyServers = await Proxy.scope('check').findAll();
+        const proxyServers = await Proxy.scope('check').findAll();
 
         if (!_.size(proxyServers)) {
             return;
@@ -41,7 +41,6 @@ export default class ProxyChecker {
         const checkedProxies = proxyNodesToProxies(_.flatMap(batches, 'body'));
         const transaction = await sequelize.transaction();
         const proxies = toUniqueProxies(checkedProxies);
-
 
         try {
             let promises = [];

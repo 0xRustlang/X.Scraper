@@ -90,6 +90,6 @@ app.listen(parseInt(PORT || '8080')).on('listening', async () => {
     logger.debug('Init success. Setting schedules');
     Scheduler.schedule(uncheckedProxyGrabber.populate.bind(uncheckedProxyGrabber), moment.duration(GRAB_TIMEOUT).asMilliseconds());
     Scheduler.schedule(proxyChecker.checkProxies.bind(proxyChecker), moment.duration(CHECK_TIMEOUT).asMilliseconds());
-    Scheduler.schedule(proxyChecker.checkDeadProxies.bind(proxyChecker), moment.duration(CHECK_TIMEOUT).asMilliseconds() * 5);
+    Scheduler.schedule(proxyChecker.checkDeadProxies.bind(proxyChecker), moment.duration(CHECK_TIMEOUT).asMilliseconds() * 3);
     Scheduler.schedule(proxyCleaner.cleanProxy.bind(proxyCleaner), moment.duration(CHECK_TIMEOUT).asMilliseconds() * 2);
 });

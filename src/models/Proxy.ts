@@ -29,7 +29,7 @@ function defaultMomentObject(): Moment {
     attributes: ['server', 'port']
 })
 @Scopes({
-    check: (dead: boolean = false) => {
+    checkDead() {
         return {
             where: {
                 [Sequelize.Op.or]: {
@@ -39,8 +39,21 @@ function defaultMomentObject(): Moment {
                     checkedTimes: 0
                 },
                 lossRatio: {
-                    [dead ? Sequelize.Op.eq : Sequelize.Op.ne]: 1
+                    [Sequelize.Op.eq]: 1
                 }
+            }
+        }
+    },
+    check() {
+        return {
+            where: {
+                [Sequelize.Op.or]: {
+                    lastChecked: {
+                        [Sequelize.Op.lte]: momentToSQL(defaultMomentObject())
+                    },
+                    checkedTimes: 0
+                },
+                [Sequelize.Op.and]: Sequelize.literal(`"lossRatio" IS DISTINCT FROM 1`)
             }
         }
     },
