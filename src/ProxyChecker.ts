@@ -37,7 +37,7 @@ export default class ProxyChecker {
     }
 
     private async checkInternal(proxyServers: Array<Proxy>): Promise<void> {
-        const batches = await Promise.all(_.chunk(proxyServers, 1000).map(proxiesToXMeter).map(v => this.meterApi.checkReliability(v)));
+        const batches = await Promise.all(_.chunk(proxyServers, 3000).map(proxiesToXMeter).map(v => this.meterApi.checkReliability(v)));
         const checkedProxies = proxyNodesToProxies(_.flatMap(batches, 'body'));
         const transaction = await sequelize.transaction();
         const proxies = toUniqueProxies(checkedProxies);
