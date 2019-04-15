@@ -29,7 +29,7 @@ export class ProxyController extends Controller {
                     offset: offset,
                     limit: limit,
                     order: [
-                        ['createdAt', 'DESC'],
+                        ['lastChecked', 'DESC'],
                         ['pingTimeMs', 'ASC']
                     ]
                 });
