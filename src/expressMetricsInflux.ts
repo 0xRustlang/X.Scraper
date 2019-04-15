@@ -1,7 +1,7 @@
-import { InfluxDB, IPoint } from "influx";
-import { EventEmitter } from "events";
-import * as winston from "winston";
-import * as express from "express";
+import { InfluxDB, IPoint } from "influx"
+import { EventEmitter } from "events"
+import * as winston from "winston"
+import * as express from "express"
 
 interface ExpressMiddlewareOptions {
     batchSize: number;
@@ -16,20 +16,14 @@ export default function expressInfluxMetrics(options: ExpressMiddlewareOptions):
     eventEmitter.on('addPoint', () => {
         if (points.length >= options.batchSize) {
             try {
-                options.influxClient
+                options
+                    .influxClient
                     .writeMeasurement('requests', points)
-                    .then(
-                        () => {
-                            points = [];
-                        }
-                    )
-                    .catch(
-                        (reason: any) => {
-                            const { message } = reason;
-
-                            options.logger.warn(message);
-                        }
-                    );
+                    .then(() => { points = [] })
+                    .catch(reason => {
+                        const { message } = reason;
+                        options.logger.warn(message);
+                    });
             } catch (e) {
                 options.logger.warn(e.message);
             }
@@ -42,8 +36,8 @@ export default function expressInfluxMetrics(options: ExpressMiddlewareOptions):
         const requestStartedAt = Date.now();
         const browserName = request.userAgent.getBrowser().name;
 
-        let makePoint = () => {
-            let responseTime = Date.now() - requestStartedAt;
+        const makePoint = () => {
+            const responseTime = Date.now() - requestStartedAt;
 
             points.push({
                 timestamp: new Date(),
@@ -63,7 +57,7 @@ export default function expressInfluxMetrics(options: ExpressMiddlewareOptions):
             eventEmitter.emit('addPoint')
         };
 
-        let cleanup = () => {
+        const cleanup = () => {
             response.removeListener('finish', makePoint);
             response.removeListener('error', cleanup);
             response.removeListener('close', cleanup);

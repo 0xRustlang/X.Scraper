@@ -1,4 +1,4 @@
-import { InfluxDB } from "influx";
+import { InfluxDB } from "influx"
 
 export default new InfluxDB({
     host: process.env.INFLUXDB_HOST,

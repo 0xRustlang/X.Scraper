@@ -1,46 +1,54 @@
-import { MeterApi } from "./xmeterapi/api";
-import { proxiesToXMeter, proxyNodesToProxies, toUniqueProxies } from './utils';
-import * as _ from 'lodash';
-import { Proxy } from "./models/Proxy";
-import logger from "./logger";
-import { sequelize } from "./Sequelize";
+import { MeterApi } from "./xmeterapi/api"
+import { proxiesToXMeter, proxyNodesToProxies, toUniqueProxies } from './utils'
+import * as _ from 'lodash'
+import { Proxy } from "./models/Proxy"
+import logger from "./logger"
+import { sequelize } from "./Sequelize"
 import influxClient from "./influxClient"
+import { NonAbstractTypeOfModel } from "sequelize-typescript/lib/models/Model"
 
 export default class ProxyChecker {
+    /** @property {MeterApi} **/
     private meterApi: MeterApi;
 
+    /**
+     * @param {MeterApi} meterApi
+     */
     constructor(meterApi: MeterApi) {
         this.meterApi = meterApi;
     }
 
-    public async checkDeadProxies(): Promise<void> {
-        const proxyServers = await Proxy.scope('checkDead').findAll();
-
-        if (!_.size(proxyServers)) {
-            return;
+    /**
+     * @returns {Promise<void>}
+     */
+    async checkDeadProxies(): Promise<void> {
+        for await (const proxies of this.batch(Proxy.scope('checkDead'))) {
+            logger.debug(`Sending ${_.size(proxies)} alive to XMeter`);
+            await this.run(proxies);
         }
-
-        logger.debug(`Sending ${_.size(proxyServers)} dead to XMeter`);
-        await this.checkInternal(proxyServers);
     }
 
-    public async checkProxies(): Promise<void> {
-        const proxyServers = await Proxy.scope('check').findAll();
-
-        if (!_.size(proxyServers)) {
-            return;
+    /**
+     * @returns {Promise<void>}
+     */
+    async checkProxies(): Promise<void> {
+        for await (const proxies of this.batch(Proxy.scope('check'))) {
+            logger.debug(`Sending ${_.size(proxies)} alive to XMeter`);
+            await this.run(proxies);
         }
 
-        logger.debug(`Sending ${_.size(proxyServers)} alive to XMeter`);
-        await this.checkInternal(proxyServers);
         await this.flushMetrics();
     }
 
-    private async checkInternal(proxyServers: Array<Proxy>): Promise<void> {
-        const batches = await Promise.all(_.chunk(proxyServers, 3000).map(proxiesToXMeter).map(v => this.meterApi.checkReliability(v)));
+    /**
+     * @param {Array<Proxy>} proxyServers
+     * @returns {Promise<void>}
+     */
+    async run(proxyServers: Array<Proxy>): Promise<void> {
+        const batches = await this.meterApi.checkReliability(proxyServers.map(proxiesToXMeter));
         const checkedProxies = proxyNodesToProxies(_.flatMap(batches, 'body'));
-        const transaction = await sequelize.transaction();
         const proxies = toUniqueProxies(checkedProxies);
+        const transaction = await sequelize.transaction();
 
         try {
             let promises = [];
@@ -54,13 +62,7 @@ export default class ProxyChecker {
                     ++aliveCounter;
                     checkedProxy.passedTimes = proxy.passedTimes + 1;
                 } else if (checkedProxy.checkedTimes === 0) {
-                    promises.push(
-                        Proxy.destroy({
-                            where: { server: checkedProxy.server, port: checkedProxy.port },
-                            transaction
-                        })
-                    );
-
+                    promises.push(Proxy.destroy({ where: { server: checkedProxy.server, port: checkedProxy.port }, transaction }));
                     deletedCounter++;
                 }
 
@@ -78,7 +80,22 @@ export default class ProxyChecker {
         }
     }
 
-    private async flushMetrics(): Promise<void> {
+    /**
+     * @param {NonAbstractTypeOfModel<Proxy>} m
+     * @param {Number} limit
+     * @param {Number} offset
+     */
+    async* batch(m: NonAbstractTypeOfModel<Proxy>, limit: number = 1000, offset: number = 0) {
+        do {
+            yield m.findAll({ limit, offset });
+            offset += limit;
+        } while (await m.count() < offset)
+    }
+
+    /**
+     * @returns {Promise<void>}
+     */
+    async flushMetrics(): Promise<void> {
         const freeProxyCount = await Proxy.scope('free').count();
         const premiumProxyCount = await Proxy.scope('premium', { method: ['uptime', 0.9] }).count();
         const allProxyCount = await Proxy.count();
