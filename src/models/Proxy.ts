@@ -74,7 +74,7 @@ function defaultMomentObject(): Moment {
                 checkedTimes: {
                     [Sequelize.Op.gt]: enoughChecks
                 },
-                [Sequelize.Op.and]: Sequelize.literal(`"passedTimes" / "checkedTimes" >= 0.9`)
+                [Sequelize.Op.and]: Sequelize.literal(`cast("passedTimes" as decimal) / "checkedTimes" >= 0.9`)
             }
         }
     },
@@ -91,14 +91,14 @@ function defaultMomentObject(): Moment {
                             [Sequelize.Op.gte]: 2
                         }
                     },
-                    [Sequelize.Op.and]: Sequelize.literal(`"passedTimes" / "checkedTimes" < 0.9`)
+                    [Sequelize.Op.and]: Sequelize.literal(`cast("passedTimes" as decimal) / "checkedTimes" < 0.9`)
                 }
             }
         }
     },
     uptime: (uptime: Number, op: string = '>=') => {
         return {
-            where: { [Sequelize.Op.and]: Sequelize.literal(`"passedTimes" / "checkedTimes" ${op} ${uptime}`) }
+            where: { [Sequelize.Op.and]: Sequelize.literal(`cast("passedTimes" as decimal) / "checkedTimes" ${op} ${uptime}`) }
         }
     },
     checkedTimes: (times: Number) => {
