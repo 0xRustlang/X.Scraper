@@ -45,9 +45,8 @@ export default class ProxyChecker {
      * @returns {Promise<void>}
      */
     async run(proxyServers: Array<Proxy>): Promise<void> {
-        const batches = await this.meterApi.checkReliability(proxyServers.map(proxiesToXMeter));
-        const checkedProxies = proxyNodesToProxies(_.flatMap(batches, 'body'));
-        const proxies = toUniqueProxies(checkedProxies);
+        const xm = await this.meterApi.checkReliability(proxyServers.map(proxiesToXMeter));
+        const proxies = toUniqueProxies(proxyNodesToProxies(xm.body));
         const transaction = await sequelize.transaction();
 
         try {
