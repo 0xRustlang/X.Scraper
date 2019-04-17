@@ -88,7 +88,8 @@ export default class ProxyChecker {
     async* batch(m: NonAbstractTypeOfModel<Proxy>, limit: number = 1000, offset: number = 0) {
         let count = await m.count();
         do {
-            yield (await m.findAll({ limit, offset }));
+            yield (await m.findAll({ limit }));
+            limit = Math.min(1000, Math.abs(count - offset));
             offset += limit;
         } while (count > offset)
     }
