@@ -85,14 +85,14 @@ export default class ProxyChecker {
      * @param {Number} limit
      */
     async* batch(m: NonAbstractTypeOfModel<Proxy>, limit: number = 1000) {
-        const count = await m.count();
-        let checked = 0;
+        let count = await m.count();
+        let max = 0;
 
         do {
-            limit = Math.min(1000, Math.abs(count - checked));
+            limit = Math.min(1000, Math.abs(count - max));
             yield await m.findAll({ limit });
-            checked += limit;
-        } while (count > checked);
+            max += limit;
+        } while (count > max);
     }
 
     /**
