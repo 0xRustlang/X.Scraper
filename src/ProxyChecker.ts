@@ -32,7 +32,8 @@ export default class ProxyChecker {
      * @returns {Promise<void>}
      */
     async checkProxies(): Promise<void> {
-        for await (const proxies of this.batch(Proxy.scope('check'))) {
+        let source = this.batch(Proxy.scope('check'));
+        for await (const proxies of source) {
             logger.debug(`Sending ${_.size(proxies)} alive to XMeter`);
             await this.run(proxies);
         }
@@ -85,10 +86,11 @@ export default class ProxyChecker {
      * @param {Number} offset
      */
     async* batch(m: NonAbstractTypeOfModel<Proxy>, limit: number = 1000, offset: number = 0) {
+        let count = await m.count();
         do {
-            yield m.findAll({ limit, offset });
+            yield (await m.findAll({ limit, offset }));
             offset += limit;
-        } while (await m.count() < offset)
+        } while (count > offset)
     }
 
     /**
