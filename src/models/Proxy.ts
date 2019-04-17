@@ -32,16 +32,13 @@ function defaultMomentObject(): Moment {
     checkDead() {
         return {
             where: {
-                [Sequelize.Op.or]: {
-                    lastChecked: {
-                        [Sequelize.Op.lte]: momentToSQL(defaultMomentObject())
-                    },
-                    checkedTimes: 0
-                },
                 lossRatio: {
                     [Sequelize.Op.eq]: 1
                 }
-            }
+            },
+            order: [
+                ['lastChecked', 'ASC'],
+            ]
         }
     },
     check() {
@@ -54,7 +51,10 @@ function defaultMomentObject(): Moment {
                     checkedTimes: 0
                 },
                 [Sequelize.Op.and]: Sequelize.literal(`"lossRatio" IS DISTINCT FROM 1`)
-            }
+            },
+            order: [
+                ['lastChecked', 'ASC'],
+            ]
         }
     },
     eliglibleToClean: {
