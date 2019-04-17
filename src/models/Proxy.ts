@@ -57,7 +57,7 @@ function defaultMomentObject(): Moment {
             ]
         }
     },
-    eliglibleToClean: {
+    eligibleToClean: {
         where: {
             lossRatio: 1,
             checkedTimes: {

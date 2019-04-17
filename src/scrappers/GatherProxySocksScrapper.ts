@@ -1,10 +1,23 @@
 import GatherProxyScrapper from "./GatherProxyScrapper";
 
 export default class GatherProxySocksScrapper extends GatherProxyScrapper {
-    public getProviderUrl(): string {
+    /**
+     * @returns {string}
+     */
+    getProviderUrl(): string {
         return 'http://www.gatherproxy.com/ru/sockslist';
     }
 
+    /**
+     * @returns {string}
+     */
+    getName(): string {
+        return 'GatherProxySOCKS';
+    }
+
+    /**
+     * @returns {object}
+     */
     protected get scrapeParams(): object {
         let plainText = function ($) {
             return $(this)

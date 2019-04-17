@@ -1,13 +1,16 @@
-import { IProxy } from "../interfaces/IProxy";
-import { IScrapper } from "../interfaces/IScrapper";
-import * as phantom from 'phantom';
-import * as artoo from 'artoo-js';
-import * as cheerio from 'cheerio';
+import { IProxy } from "../interfaces/IProxy"
+import { IScrapper } from "../interfaces/IScrapper"
+import * as phantom from 'phantom'
+import * as artoo from 'artoo-js'
+import * as cheerio from 'cheerio'
 
 artoo.bootstrap(cheerio);
 
 export default class GatherProxyScrapper implements IScrapper {
-    public async scrape(): Promise<Array<IProxy>> {
+    /**
+     * @returns {Promise<IProxy[]>}
+     */
+    async scrape(): Promise<IProxy[]> {
         const phantomInstance = await phantom.create([], { logLevel: 'error' });
         const page = await phantomInstance.createPage();
         const status = await page.open(this.getProviderUrl());
@@ -28,10 +31,23 @@ export default class GatherProxyScrapper implements IScrapper {
         return results;
     }
 
-    public getProviderUrl(): string {
+    /**
+     * @returns {string}
+     */
+    getProviderUrl(): string {
         return 'http://www.gatherproxy.com/ru';
     }
 
+    /**
+     * @returns {string}
+     */
+    getName(): string {
+        return 'GatherProxy';
+    }
+
+    /**
+     * @returns {object}
+     */
     protected get scrapeParams(): object {
         return {
             server: {

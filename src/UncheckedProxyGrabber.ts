@@ -68,16 +68,17 @@ export default class UncheckedProxyGrabber {
      * @returns {Promise<IProxy[]>[]}
      */
     mapScrappers(scrappers: IScrapper[]): Promise<IProxy[]>[] {
-        return scrappers.map(scrapper => Promise.race([scrapper.scrape(), this.createTimeout()]).catch(e => {
+        return scrappers.map(scrapper => Promise.race([scrapper.scrape(), this.createTimeout(scrapper)]).catch(e => {
             logger.error(e);
-            return []
+            return [];
         }));
     }
 
     /**
+     * @param {IScrapper} scrapper
      * @returns {Promise<any>}
      */
-    createTimeout(): Promise<any> {
-        return new Promise((_, reject) => setTimeout(reject, 40000, 'Timeout'));
+    createTimeout(scrapper: IScrapper): Promise<any> {
+        return new Promise((_, reject) => setTimeout(reject, 40000, `Connection timeout (provider: ${scrapper.getName()}`));
     }
 }

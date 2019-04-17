@@ -1,11 +1,23 @@
-import SpysScrapper from './SpysScrapper';
-import { IProxy } from "../interfaces/IProxy";
-import * as cheerio from 'cheerio';
-import * as querystring from "querystring";
-import * as phantom from 'phantom';
+import SpysScrapper from './SpysScrapper'
+import { IProxy } from "../interfaces/IProxy"
+import * as cheerio from 'cheerio'
+import * as querystring from "querystring"
+import * as phantom from 'phantom'
 
 export default class SpysSOCKSScrapper extends SpysScrapper {
-    protected async parse(page: phantom.WebPage, session: string): Promise<Array<IProxy>> {
+    /**
+     * @returns {string}
+     */
+    getName(): string {
+        return 'SpysSOCKS';
+    }
+
+    /**
+     * @param {phantom.WebPage} page
+     * @param {string} session
+     * @returns {Promise<IProxy[]>}
+     */
+    protected async parse(page: phantom.WebPage, session: string): Promise<IProxy[]> {
         const status = await page.open(
             this.getProviderUrl(), 'POST', querystring.stringify({
                 xf0: session,
