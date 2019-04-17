@@ -82,35 +82,21 @@ export default class ProxyChecker {
     /**
      * @param {NonAbstractTypeOfModel<Proxy>} m
      * @param {Number} limit
-     * @param {Number} offset
      */
-    async* batch(m: NonAbstractTypeOfModel<Proxy>, limit: number = 1000, offset: number = 0) {
-        const count = await m.count();
-
+    async* batch(m: NonAbstractTypeOfModel<Proxy>, limit: number = 1000) {
         do {
-            yield await m.findAll({ limit, offset });
-
-            limit = Math.min(1000, Math.abs(count - offset));
-            offset += limit;
-        } while (count > offset)
+            yield await m.findAll({ limit });
+        } while (await m.count() > 0);
     }
 
     /**
      * @returns {Promise<void>}
      */
     async flushMetrics(): Promise<void> {
-        const freeProxyCount = await Proxy.scope('free').count();
+        const freeProxyCount    = await Proxy.scope('free').count();
         const premiumProxyCount = await Proxy.scope('premium', { method: ['uptime', 0.9] }).count();
-        const allProxyCount = await Proxy.count();
-
-        const measurement = {
-            timestamp: new Date(),
-            fields: {
-                freeProxyCount,
-                premiumProxyCount,
-                allProxy: allProxyCount
-            },
-        };
+        const allProxyCount     = await Proxy.count();
+        const measurement       = { timestamp: new Date(), fields: { freeProxyCount, premiumProxyCount, allProxyCount } };
 
         try {
             await influxClient.writeMeasurement('proxy', [measurement]);
