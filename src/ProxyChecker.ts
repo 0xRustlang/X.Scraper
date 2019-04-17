@@ -23,7 +23,7 @@ export default class ProxyChecker {
      */
     async checkDeadProxies(): Promise<void> {
         for await (const proxies of this.batch(Proxy.scope('checkDead'))) {
-            logger.debug(`Sending ${_.size(proxies)} alive to XMeter`);
+            logger.debug(`Sending ${_.size(proxies)} dead to XMeter`);
             await this.run(proxies);
         }
     }
